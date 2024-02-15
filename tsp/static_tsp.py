@@ -13,6 +13,24 @@ class StaticTSPSolver:
         self.center = top_view_center
 
     def solve(self, top_view_track_df: pd.DataFrame, frame_index: int = 2):
+        """
+        Solves the TSP for a given frame of the top view track data.
+
+        Parameters:
+        -----------
+        top_view_track_df: pd.DataFrame
+            A pandas dataframe containing the top view track data.
+        frame_index: int, optional
+            The index of the frame for which to solve the TSP. The default is 2.
+
+        Returns:
+        --------
+        permutation: List[int]
+            A list of IDs in the order of the TSP tour.
+        distance: float
+            The distance of the TSP tour.
+        """
+
         logger.info(f"Solving TSP for frame #{frame_index}")
 
         frame_num = top_view_track_df.query(f"frame == {frame_index}")
@@ -27,7 +45,9 @@ class StaticTSPSolver:
         logger.info(f"Permutations: {permutation}")
         logger.info(f"Shortest path distance: {distance}")
 
-    def _get_coord_list(self, frame):
+        return permutation, distance
+
+    def _get_coord_list(self, frame: pd.DataFrame) -> list:
         coordinate_list = [[self.center[0], self.center[1]]]
         x = np.array(frame['x'])
         y = np.array(frame['y'])
@@ -35,7 +55,7 @@ class StaticTSPSolver:
             coordinate_list.append([x[i], y[i]])
         return coordinate_list
 
-    def _find_dist(self, coordinates):
+    def _find_dist(self, coordinates: list):
         n = len(coordinates)
         dist_matrix = np.zeros((n, n))
 
