@@ -30,7 +30,8 @@ class CoordinateTransform:
         self.corner_dest_points = self._init_destination_points()
 
         self.default_tracking_players_path = "coordinate_transform/data/yantar-230722-02_track.csv"
-        self.MAX_FRAMES = 10000
+        self.MAX_FRAMES = 20000
+        self.center_orig_perspective = [1846, 343]  # 1846, 343 - are approximately the center of the stadium left side
 
     def _init_destination_points(self):
         """
@@ -138,3 +139,8 @@ class CoordinateTransform:
         transformed_coords = transformed_coords[['frame', 'id', 'x', 'y', 'coef']]
         transformed_coords.to_csv(file_save_name)
         return transformed_coords
+
+    def get_top_view_center(self) -> np.ndarray:
+        M = self._get_projective_transform_matrix()
+        center = M @ np.array(self.center_orig_perspective + [1])
+        return center
