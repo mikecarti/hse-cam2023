@@ -13,7 +13,7 @@ class FrameReader:
             # Read the first frame
             frame = video.get_data(frame_index)
             logger.info(f"Shape of a frame:  {frame.shape}")
-        plt.imsave('test.jpg', frame)
+        # plt.imsave('test.jpg', frame)
         return frame
 
     def get_meta_data(self) -> dict:

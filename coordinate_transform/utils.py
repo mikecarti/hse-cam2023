@@ -1,8 +1,11 @@
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
 def show_transformation(orig_image, transformed_image):
     fig, axs = plt.subplots(1, 2)
+    plt.subplots_adjust(wspace=0.4)
 
     # Set the image and title for the first subplot on the left
     axs[0].imshow(orig_image)
@@ -15,6 +18,8 @@ def show_transformation(orig_image, transformed_image):
     # Set the limits and aspect ratio for the second subplot
     axs[1].set_xlim((0, 700))
     axs[1].set_ylim((700, 0))
+
+    plt.savefig("transformation.png")
 
     # Show the figure
     plt.show()

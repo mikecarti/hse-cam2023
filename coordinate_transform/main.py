@@ -1,5 +1,8 @@
+import os
+
 from loguru import logger
 
+from coordinate_transform.download import download_video
 from coordinate_transform.transform import CoordinateTransform
 from frame_reader import FrameReader
 from utils import show_transformation
@@ -15,11 +18,12 @@ p4 = (2139, 668)
 corner_src_points = [p1, p2, p3, p4]
 
 if __name__ == '__main__':
-    reader = FrameReader('yantar-230722-02-det.mp4')
+    video_path = os.path.join('data', 'yantar-230722-02-det.mp4')
+
+    reader = FrameReader(video_path)
     frame = reader.read_frame(0)
     logger.info(reader.get_meta_data())
 
     transformer = CoordinateTransform(stadium_length, stadium_width, corner_src_points)
     image_view_from_above = transformer.to_top_perspective(image=frame)
     show_transformation(frame, image_view_from_above)
-
