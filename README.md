@@ -9,6 +9,5 @@ source venv/bin/activate
 pip install -r requirements.txt
 sudo apt-get install python3-tk
 
-cd coordinate_transform
 python main.py
 ```
