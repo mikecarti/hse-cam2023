@@ -31,7 +31,7 @@ class CoordinateTransform:
         self.corner_dest_points = self._init_destination_points()
 
         self.default_tracking_players_path = "coordinate_transform/data/yantar-230722-02_track.csv"
-        self.MAX_FRAMES = 20000
+        self.MAX_FRAMES = np.inf  # put here lower bound for testing purposes
         self.center_orig_perspective = [1846, 343]  # 1846, 343 - are approximately the center of the stadium left side
 
     def transform_coordinates(self, track_boxes_df: pd.DataFrame = None,
