@@ -2,6 +2,7 @@ import matplotlib
 
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from loguru import logger
 
 
 def show_transformation(orig_image, transformed_image):
@@ -23,7 +24,7 @@ def show_transformation(orig_image, transformed_image):
     axs[1].set_ylim((700, 0))
 
     plt.savefig("transformation.png")
-
+    logger.info("Close this plot window to continue...")
     # Show the figure
     plt.show()
 

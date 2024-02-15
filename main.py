@@ -37,6 +37,7 @@ if __name__ == '__main__':
     transformed_positions = transformer.transform_coordinates(pd.read_csv(track_df_path))
     logger.info("All positions transformed to top-view perspective, ready to run TSP optimization")
 
-    solver = StaticTSPSolver()
+    solver = StaticTSPSolver(top_view_center=transformer.get_top_view_center())
+    solver.solve(top_view_track_df=transformed_positions, frame_index=2)
 
 
