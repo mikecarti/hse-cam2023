@@ -1,9 +1,12 @@
 import matplotlib
+
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 
 def show_transformation(orig_image, transformed_image):
+    wait_seconds = 3
+
     fig, axs = plt.subplots(1, 2)
     plt.subplots_adjust(wspace=0.4)
 
@@ -25,5 +28,5 @@ def show_transformation(orig_image, transformed_image):
     plt.show()
 
     # Wait for 15 seconds
-    plt.pause(15)
+    plt.pause(wait_seconds)
     plt.close()
