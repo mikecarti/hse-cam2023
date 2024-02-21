@@ -33,11 +33,26 @@ if __name__ == '__main__':
 
     run_demo(coord_transformer=transformer)
 
-    track_df_path = os.path.join("coordinate_transform", "data", "yantar-230722-02_track.csv")
-    transformed_positions = transformer.transform_coordinates(pd.read_csv(track_df_path))
+    positional_data = os.path.join("coordinate_transform", "data", "yantar-230722-02_track.csv")
+    transformed_positions = transformer.transform_coordinates(pd.read_csv(positional_data))
     logger.info("All positions transformed to top-view perspective, ready to run TSP optimization")
 
+    # TODO:
+    # from predict.model import Predictor
+    # predictor = Predictor()
+    # movement = predictor.predict_movement(objects)
+
     solver = StaticTSPSolver(top_view_center=transformer.get_top_view_center())
-    solver.solve(top_view_track_df=transformed_positions, frame_index=2)
+    solution = solver.solve(top_view_track_df=transformed_positions, frame_index=2)
+
+    # TODO:
+    # from instruct.instructor import Instructor
+    # next_move = Instructor(solution)
+
+    # TODO:
+    # from cam_control.controller import CameraController
+    # controller = CameraController()
+    # controller.move(next_move)
+
 
 
