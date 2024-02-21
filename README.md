@@ -1,4 +1,9 @@
 ## Running
+To run code, video should be downloaded from [here](https://disk.yandex.ru/d/cSsaqIltoaPn9g) and put in ```coordinate_transform/data```.<br> 
+File is named "yantar-230722-02-det.mp4" <br>
+Also file should be downloaded from same directory: "yantar-230722-02_track.csv" and placed in ```coordinate_transform/data```
+<br><br>
+
 ```commandline
 virtualenv venv
 source venv/bin/activate
@@ -8,11 +13,7 @@ sudo apt-get install python3-tk
 python main.py
 ```
 
-# Coordinate Transform 
-To run code, video should be downloaded from [here](https://disk.yandex.ru/d/cSsaqIltoaPn9g) and put in ```coordinate_transform/data```.<br> 
-File is named "yantar-230722-02-det.mp4" <br>
-Also file should be downloaded from same directory: "yantar-230722-02_track.csv" and placed in ```coordinate_transform/data```
-<br><br>
+# Coordinate Transform
 Module coordinate_transform is busy with transformation of coordinates
 for our objects of observation. It also is able to transform camera positions for simulation.
 
