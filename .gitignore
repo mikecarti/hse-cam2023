@@ -1,3 +1,7 @@
+# CUSTOM
+coordinate_transform/data
+coordinate_transform/transformation.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
