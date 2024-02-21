@@ -1,5 +1,6 @@
 # CUSTOM
-coordinate_transform/data
+coordinate_transform/data/yantar-230722-02-det.mp4
+coordinate_transform/data/yantar-230722-02_track.csv
 coordinate_transform/transformation.png
 
 # Byte-compiled / optimized / DLL files
