@@ -1,21 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 from typing import List, Tuple
-from sympy import Point3D, Plane, Line3D
+from sympy import Point3D, Plane as sPlane, Line3D
 
 # Define type aliases for better readability
 Point = Tuple[float, float, float]
 Plane = List[Point]
+Rectangle = Tuple[Point, Point, Point, Point]
 
 
-def calculate_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, float, float], fov: Tuple[float, float],
-                            near_distance: float) -> Plane:
+def calculate_fov_rectangle(cam_coords: Point, camera_angles: Tuple[float, float, float], dist: int) -> Rectangle:
+    """
+    This function calculates the fov rectangle for a given camera coordinates, angle and plane coordinates.
+
+    Theta - rotation angle along the z axis.
+    Phi - rotation angle along the x axis.
+    Psi - rotation angle along the y axis.
+
+    :param cam_coords: Coordinates of the camera
+    :type cam_coords: Point
+    :param camera_angles: Camera angles in plane's coordinate system
+    :type camera_angles: Tuple[float, float, float]
+    :rtype: Rectangle
+    """
     # Convert camera angles from degrees to radians
     theta, phi, psi = np.radians(camera_angles)
 
-    # Extract camera coordinates
-    x_cam, y_cam, z_cam = camera_coords
+    # x_cam, y_cam, z_cam = camera_coords
 
     # Calculate the direction vector of the camera
     direction_vector = np.array([
@@ -33,7 +44,7 @@ def calculate_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, fl
     half_fov_vertical = np.radians(fov[1] / 2)
 
     # Calculate the vectors representing the corners of the rectangle
-    center = camera_coords + near_distance * direction_vector
+    center = cam_coords + dist * direction_vector
     top_left_corner = center - half_fov_horizontal * u_vector + half_fov_vertical * v_vector
     top_right_corner = center + half_fov_horizontal * u_vector + half_fov_vertical * v_vector
     bottom_left_corner = center - half_fov_horizontal * u_vector - half_fov_vertical * v_vector
@@ -41,7 +52,7 @@ def calculate_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, fl
 
     return [top_left_corner, top_right_corner, bottom_right_corner, bottom_left_corner]
 
-
+# rewrite plagiarism
 def plot_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, float, float], fov: Tuple[float, float],
                        near_distance: float, plane: Plane) -> None:
     fig = plt.figure()
@@ -51,7 +62,7 @@ def plot_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, float, 
     ax.scatter(camera_coords[0], camera_coords[1], camera_coords[2], color='red', label='Camera')
 
     # Calculate and plot FOV rectangle
-    fov_rectangle_corners = calculate_fov_rectangle(camera_coords, camera_angles, fov, near_distance)
+    fov_rectangle_corners = calculate_fov_rectangle(camera_coords, camera_angles, near_distance)
     x_vals = [corner[0] for corner in fov_rectangle_corners]
     y_vals = [corner[1] for corner in fov_rectangle_corners]
     z_vals = [corner[2] for corner in fov_rectangle_corners]
@@ -80,19 +91,18 @@ def plot_fov_rectangle(camera_coords: Point, camera_angles: Tuple[float, float, 
 
     plt.show()
 
-
-
+# rewrite plagiarism
 def find_intersection(plane_points: List[Point], ) -> np.ndarray:
     # plane Points
-    a1 = Point3D(-5, 15, -5)
-    a2 = Point3D(5, 15, -5)
-    a3 = Point3D(5, 15, 5)
+    a1 = Point3D(*plane_points[0])
+    a2 = Point3D(*plane_points[1])
+    a3 = Point3D(*plane_points[2])
     # line Points
     p0 = Point3D(0, 3, 1)  # point in line
     v0 = [0, 1, 1]  # line direction as vector
 
     # create plane and line
-    plane = Plane(a1, a2, a3)
+    plane = sPlane(a1, a2, a3)
 
     line = Line3D(p0, direction_ratio=v0)
 
@@ -107,6 +117,7 @@ def find_intersection(plane_points: List[Point], ) -> np.ndarray:
     print(f"intersection: {intersection}")
     return intersection
 
+
 def calculate_projection_corners(sensor_coords: Plane, camera_coords: Point, camera_angles: Tuple[float, float, float],
                                  plane_coords: Plane) -> List[Point]:
     pass
@@ -119,6 +130,6 @@ fov = (60, 45)  # Horizontal and vertical FOV in degrees
 near_distance = 1  # Distance from the camera to the rectangle
 height = 5
 width = 5
-plane = [[0, 0, 0], [height, 0, 0], [height, width, 0], [0, width, 0]]  # Plane with z = 0
+plane = [(0, 0, 0), (height, 0, 0), (height, width, 0), (0, width, 0)]  # Plane with z = 0
 
 plot_fov_rectangle(camera_coords, camera_angles, fov, near_distance, plane)
