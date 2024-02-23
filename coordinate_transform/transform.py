@@ -62,7 +62,8 @@ class CoordinateTransform:
             if i > self.MAX_FRAMES:
                 logger.info(f"Max frames reached. Stopping: {self.MAX_FRAMES}")
                 break
-            logger.info(f"Transforming frame {i}...")
+            if i % 10000 == 0:
+                logger.info(f"Transforming frame {i}...")
             df = track_boxes_df[track_boxes_df["frame"] == i]
             tracking_coords_transformed += self._get_position_transformed(df, transformation_matrix=M)
 
