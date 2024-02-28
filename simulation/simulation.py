@@ -27,7 +27,7 @@ class Player:
     def move(self, grid):
         if random.random() < 0.1:  # 10% chance to leave position
             x = random.randint(0, grid.width)
-            y = random.randint(0, grid.height)
+            y = random.randint(0, grid.length)
         else:  # 90% chance to move towards default position
             x = (self.default_position[0] + self.current_position[0]) / 2
             y = (self.default_position[1] + self.current_position[1]) / 2
