@@ -1,14 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sympy import Point3D, Plane as sPlane, Line3D
-from typing import Tuple
+from typing import Tuple, List
 
 # Define type aliases for better readability
 Point = np.ndarray
 Rectangle = Tuple[Point, Point, Point, Point]
 
 
-def calculate_fov_rectangle(cam_coords: Point, camera_angles: np.ndarray, dist: float) -> Rectangle:
+def calculate_fov_rectangle(cam_coords: Point, camera_angles: np.ndarray, dist: float, fov: Tuple[int, int]) \
+        -> Tuple[Rectangle, List[Point]]:
     """
     This function calculates the fov rectangle for a given camera coordinates, angle and plane coordinates.
 
@@ -20,12 +21,12 @@ def calculate_fov_rectangle(cam_coords: Point, camera_angles: np.ndarray, dist: 
     :type cam_coords: Point
     :param camera_angles: Camera angles in plane's coordinate system
     :type camera_angles: np.ndarray
-    :rtype: Rectangle
+    :rtype: Tuple[Rectangle, List[Point]]
     """
     # Convert camera angles from degrees to radians
     theta, phi, psi = np.radians(camera_angles)
 
-    # Calculate the direction vector of the camera
+    # Calculate direction vector of the camera
     direction_vector = np.array([
         np.cos(phi) * np.cos(theta),
         np.cos(phi) * np.sin(theta),
@@ -42,36 +43,78 @@ def calculate_fov_rectangle(cam_coords: Point, camera_angles: np.ndarray, dist: 
     half_fov_horizontal = np.radians(fov[0] / 2)
     half_fov_vertical = np.radians(fov[1] / 2)
 
-    # Calculate the vectors representing the corners of the rectangle
-    top_left_corner = center - half_fov_horizontal * u_vector + half_fov_vertical * v_vector
-    top_right_corner = center + half_fov_horizontal * u_vector + half_fov_vertical * v_vector
-    bottom_left_corner = center - half_fov_horizontal * u_vector - half_fov_vertical * v_vector
-    bottom_right_corner = center + half_fov_horizontal * u_vector - half_fov_vertical * v_vector
+    orientations_from_center = ([-1, -1], [-1, 1], [1, 1], [1, -1])
+    # Calculate the corners of the rectangle
+    corners = [
+        center + du * half_fov_horizontal * u_vector + dv * half_fov_vertical * v_vector
+        for (dv, du) in orientations_from_center
+    ]
 
-    return top_left_corner, top_right_corner, bottom_right_corner, bottom_left_corner
+    # Calculate vectors from camera to corners
+    vectors = [corner - cam_coords for corner in corners]
+    return corners, vectors
+
+
+def find_intersection_points(camera_coords: Point, vectors: List[Point], plane: Point) -> List[Point]:
+    intersection_points = []
+
+    # Define the plane equation
+    a1, a2, a3 = plane[0], plane[1], plane[2]
+    normal = np.cross(np.array(a2) - np.array(a1), np.array(a3) - np.array(a1))
+    D = np.dot(normal, np.array(a1))
+
+    for vector in list(vectors):
+        # Define the line passing through camera_coords and parallel to the vector
+        p0 = np.array(camera_coords)
+        v0 = np.array(vector)
+
+        # Solve the system of equations to find the intersection point
+        t = (D - np.dot(normal, p0)) / np.dot(normal, v0)
+        intersection_point = p0 + t * v0
+
+        intersection_points.append(intersection_point)
+
+    return intersection_points
 
 
 def plot_fov_rectangle(camera_coords: Point, camera_angles: np.ndarray, fov: Tuple[float, float],
-                       near_distance: float, plane: Point) -> None:
+                       near_distance: float, plane: Rectangle) -> None:
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
     # Plot camera point
-    ax.scatter(camera_coords[0], camera_coords[1], camera_coords[2], color='red', label='Оптический центр линзы')
+    ax.scatter(*camera_coords, color='red', label='Оптический центр линзы')
 
     # Calculate and plot FOV rectangle
-    fov_rectangle_corners = calculate_fov_rectangle(camera_coords, camera_angles, near_distance)
+    fov_rectangle_corners, vectors = calculate_fov_rectangle(camera_coords, camera_angles, near_distance, fov)
     x_vals, y_vals, z_vals = zip(*fov_rectangle_corners)
-    ax.plot([x_vals[0], x_vals[1], x_vals[2], x_vals[3], x_vals[0]],
-            [y_vals[0], y_vals[1], y_vals[2], y_vals[3], y_vals[0]],
-            [z_vals[0], z_vals[1], z_vals[2], z_vals[3], z_vals[0]], color='blue',
+    ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
             label="Фокальная плоскость камеры")
 
     # Plot z=0 plane
-    ax.plot([plane[0][0], plane[1][0], plane[2][0], plane[3][0], plane[0][0]],
-            [plane[0][1], plane[1][1], plane[2][1], plane[3][1], plane[0][1]],
-            [plane[0][2], plane[1][2], plane[2][2], plane[3][2], plane[0][2]],
+    ax.plot([plane[i][0] for i in range(4)] + [plane[0][0]],
+            [plane[i][1] for i in range(4)] + [plane[0][1]],
+            [plane[i][2] for i in range(4)] + [plane[0][2]],
             color='green', alpha=0.5, label="Наблюдаемая плоскость")
+
+    # Plot purple lines
+    for vector in vectors:
+        ax.plot([camera_coords[0], camera_coords[0] + vector[0]],
+                [camera_coords[1], camera_coords[1] + vector[1]],
+                [camera_coords[2], camera_coords[2] + vector[2]], color='purple')
+
+    intersection_points = find_intersection_points(camera_coords, vectors, plane)
+    # Plot intersection points
+    # intersection_x_vals, intersection_y_vals, intersection_z_vals = zip(*intersection_points)
+    # ax.plot(intersection_x_vals, intersection_y_vals, intersection_z_vals, color='black',
+    #            label='Intersection Points')
+    for intersection, corner in zip(intersection_points, fov_rectangle_corners):
+        ax.plot(
+            [corner[0], intersection[0]],
+            [corner[1], intersection[1]],
+            [corner[2], intersection[2]],
+            color="black", label="Intersection Points"
+        )
 
     ax.set_aspect('equal')
 
@@ -83,6 +126,8 @@ def plot_fov_rectangle(camera_coords: Point, camera_angles: np.ndarray, fov: Tup
 
     plt.show()
 
+
+# Call the plotting function with intersection points
 
 # def find_intersection(plane_points: Point) -> np.ndarray:
 #     # plane Points
