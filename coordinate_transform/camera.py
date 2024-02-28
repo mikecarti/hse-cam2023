@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 
+# TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 
 class CameraProjection:
     """
@@ -24,6 +25,7 @@ class CameraProjection:
         self.fov = fov
         self.near_distance = near_distance
         self.plane = plane
+        self.SHOW_PROJECTION_LINES = True
 
     def calculate_fov_rectangle(self) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
         """
@@ -116,17 +118,29 @@ class CameraProjection:
                     [self.camera_coords[1], self.camera_coords[1] + vector[1]],
                     [self.camera_coords[2], self.camera_coords[2] + vector[2]], color='purple')
 
+        # Points of Intersect
         intersection_points = self.find_intersection_points(corners, vectors)
         intersection_x_vals, intersection_y_vals, intersection_z_vals = zip(*intersection_points)
         ax.plot(intersection_x_vals, intersection_y_vals, intersection_z_vals, 'ko', label='Intersection Points')
 
-        for intersection, corner in zip(intersection_points, corners):
-            ax.plot(
-                [corner[0], intersection[0]],
-                [corner[1], intersection[1]],
-                [corner[2], intersection[2]],
-                color="black", label="Intersection Points"
-            )
+        # Intersection Projection vectors
+        if self.SHOW_PROJECTION_LINES:
+            for intersection, corner in zip(intersection_points, corners):
+                ax.plot(
+                    [corner[0], intersection[0]],
+                    [corner[1], intersection[1]],
+                    [corner[2], intersection[2]],
+                    color="black", linestyle='--',
+                )
+
+        # Projection Quadrilateral
+        for i in range(len(intersection_points)):
+            current_intersection = intersection_points[i]
+            next_intersection = intersection_points[(i + 1) % len(intersection_points)]
+            ax.plot([current_intersection[0], next_intersection[0]],
+                    [current_intersection[1], next_intersection[1]],
+                    [current_intersection[2], next_intersection[2]],
+                    color="red", linestyle='dashdot')
 
         ax.set_aspect('equal')
 
@@ -134,7 +148,7 @@ class CameraProjection:
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
 
-        ax.legend()
+        ax.legend(loc='upper right')
 
         plt.show()
 
@@ -144,7 +158,7 @@ length = 50
 width = 25
 
 camera_coords = np.array([length / 2, -5, 5])
-camera_angles = np.array([90, 20, 0])  # Theta, Phi, Psi in degrees
+camera_angles = np.array([90, 35, 0])  # Theta, Phi, Psi in degrees
 fov = (180, 90)  # Horizontal and vertical FOV in degrees
 near_distance = 2  # Distance from the camera to the rectangle
 plane = np.array([(0, 0, 0), (length, 0, 0), (length, width, 0), (0, width, 0)])  # Plane with z = 0
