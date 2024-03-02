@@ -28,3 +28,6 @@ to the camera angle based on the solutions of DTSP.
 # TSP
 the tsp module provides algorithmic framework
 for finding the shortest path on a graph.
+
+# Simulation
+Simulation module is concerned with testing the hypotheses and analyzing the best strategies for solving a problem.
