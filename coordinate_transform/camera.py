@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 
+import yaml
+
+
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 
 class CameraProjection:
@@ -152,16 +155,17 @@ class CameraProjection:
 
         plt.show()
 
-# TODO: config
 
-# Example usage:
-length = 50
-width = 25
+# Загрузка параметров из YAML файла
+with open("cam_config.yaml", "r") as config_file:
+    config = yaml.safe_load(config_file)
 
-camera_coords = np.array([length / 2, -5, 5])
-camera_angles = np.array([90, 35, 0])  # Theta, Phi, Psi in degrees
-fov = (180, 90)  # Horizontal and vertical FOV in degrees
-near_distance = 2  # Distance from the camera to the rectangle
+length = config["length"]
+width = config["width"]
+camera_coords = np.array(config["camera_coords"])
+camera_angles = np.array(config["camera_angles"])
+fov = tuple(config["fov"])
+near_distance = config["near_distance"]
 plane = np.array([(0, 0, 0), (length, 0, 0), (length, width, 0), (0, width, 0)])  # Plane with z = 0
 
 projection = CameraProjection(camera_coords, camera_angles, fov, near_distance, plane)
