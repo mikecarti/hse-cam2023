@@ -25,12 +25,20 @@ class Player:
         self.positions = []
 
     def move(self, grid):
-        if random.random() < 0.1:  # 10% chance to leave position
-            x = random.randint(0, grid.width)
-            y = random.randint(0, grid.length)
-        else:  # 90% chance to move towards default position
-            x = (self.default_position[0] + self.current_position[0]) / 2
-            y = (self.default_position[1] + self.current_position[1]) / 2
+        direction = [0, 0]
+        if random.random() < 0.3:
+            dx = random.choice([-1, 1])
+            dy = random.choice([-1, 1])
+        else:
+            dx = self.default_position[0] - self.current_position[0]
+            dy = self.default_position[1] - self.current_position[1]
+        direction = (dx / abs(dx) if dx != 0 else 0, dy / abs(dy) if dy != 0 else 0)
+
+        x = self.current_position[0] + direction[0]
+        y = self.current_position[1] + direction[1]
+        x = max(0, min(x, grid.width))
+        y = max(0, min(y, grid.height))
+
         self.current_position = (x, y)
         self.positions.append(self.current_position)
 
@@ -52,7 +60,7 @@ class SoccerMatch:
 
     def simulate(self):
         data = []
-        for i in range(1*60*25): #minutes * seconds * frames
+        for i in range(1*15*25): #minutes * seconds * frames
             self.team1.move(self.grid)
             self.team2.move(self.grid)
             for team in [self.team1, self.team2]:
