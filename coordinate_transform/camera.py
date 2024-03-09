@@ -101,17 +101,17 @@ class CameraProjection:
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        ax.scatter(*self.camera_coords, color='red', label='Camera Center')
+        ax.scatter(*self.camera_coords, color='red', label='Оптический центр линзы')
 
         corners, vectors = self.calculate_fov_rectangle()
         x_vals, y_vals, z_vals = zip(*corners)
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
-                label="FOV Rectangle")
+                label="Фокальная плоскость камеры")
 
         ax.plot([self.plane[i][0] for i in range(4)] + [self.plane[0][0]],
                 [self.plane[i][1] for i in range(4)] + [self.plane[0][1]],
                 [self.plane[i][2] for i in range(4)] + [self.plane[0][2]],
-                color='green', alpha=0.5, label="Plane")
+                color='green', alpha=0.5, label="Наблюдаемая плоскость")
 
         for vector in vectors:
             ax.plot([self.camera_coords[0], self.camera_coords[0] + vector[0]],
@@ -152,6 +152,7 @@ class CameraProjection:
 
         plt.show()
 
+# TODO: config
 
 # Example usage:
 length = 50
