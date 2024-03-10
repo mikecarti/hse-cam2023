@@ -122,7 +122,15 @@ class CoordinateTransform:
         M = cv2.getPerspectiveTransform(source, dest)
         return M
 
-    def _downscale_df(self, df):
+    def _downscale_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Args:
+            df (pd.DataFrame): containing object's dynamics (movement)
+
+        Returns:
+            df (pd.DataFrame): having downscaled coordinates (2x downscale)
+
+        """
         df = df.copy()
 
         df["x1"] = df["x1"] // 2
@@ -131,7 +139,15 @@ class CoordinateTransform:
         df["y2"] = df["y2"] // 2
         return df
 
-    def _apply_projective_transform(self, M, XY):
+    def _apply_projective_transform(self, M: np.ndarray, XY: np.ndarray) -> np.ndarray:
+        """
+        Apply a projective transformation M on coordinate point.
+        Args:
+            M (np.ndarray): Projective Matrix
+            XY (np.ndarray): Coordinate point
+        Returns:
+            unscaled_XY_transformed (np.ndarray): True transformed point
+        """
         # XY.shape = (3,); XY = [x,y,1]
         # M.shape = (3,3)
         XY_transformed = M @ XY
@@ -139,7 +155,16 @@ class CoordinateTransform:
         unscaled_XY_transformed = XY_transformed / scaling_factor
         return unscaled_XY_transformed
 
-    def _get_position_transformed(self, frame, transformation_matrix: np.ndarray) -> List[Dict]:
+    def _get_position_transformed(self, frame: pd.DataFrame, transformation_matrix: np.ndarray) -> List[Dict]:
+        """
+        Transforms dataframe with positions to positions from top view
+        Args:
+            frame (pd.DataFrame): positions
+            transformation_matrix (np.ndarray): Projective Transform Matrix
+
+        Returns:
+            XY_transformed ( List(Dict) ): Transformed positions
+        """
         x1, y1, x2, y2 = frame['x1'], frame['y1'], frame['x2'], frame['y2']
         x = (x2 + x1) // 2
         y = y2
