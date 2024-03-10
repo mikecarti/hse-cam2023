@@ -161,7 +161,7 @@ class CameraProjection:
 
 
 # Загрузка параметров из YAML файла
-with open("cam_config.yaml", "r") as config_file:
+with open("coordinate_transform/cam_config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 
 length = config["length"]
