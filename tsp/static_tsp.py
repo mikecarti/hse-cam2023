@@ -48,6 +48,14 @@ class StaticTSPSolver:
         return permutation, distance
 
     def _get_coord_list(self, frame: pd.DataFrame) -> list:
+        """
+        Retrieve list of coordinates from a dataframe
+        Args:
+            frame (pd.DataFrame):  Coordinate Position Movement
+
+        Returns:
+            coordinate_list (List): list of coordinates
+        """
         coordinate_list = [[self.center[0], self.center[1]]]
         x = np.array(frame['x'])
         y = np.array(frame['y'])
@@ -55,7 +63,15 @@ class StaticTSPSolver:
             coordinate_list.append([x[i], y[i]])
         return coordinate_list
 
-    def _find_dist(self, coordinates: list):
+    def _find_dist(self, coordinates: list) -> np.ndarray:
+        """
+        Calculates the Distance Matrix
+        Args:
+            coordinates: List of lists of coordinates (x,y)
+
+        Returns:
+            dist_matrix (np.ndarray): distance matrix
+        """
         n = len(coordinates)
         dist_matrix = np.zeros((n, n))
 
