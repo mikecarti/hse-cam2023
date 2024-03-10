@@ -1,11 +1,21 @@
 import matplotlib
+import numpy as np
 
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from loguru import logger
 
 
-def show_transformation(orig_image, transformed_image):
+def show_transformation(orig_image: np.ndarray, transformed_image: np.ndarray) -> None:
+    """
+    Plots the transformation
+    Args:
+        orig_image (np.ndarray): original image
+        transformed_image (np.ndarray): transformed coordinates image
+
+    Returns:
+        None
+    """
     wait_seconds = 3
 
     fig, axs = plt.subplots(1, 2)

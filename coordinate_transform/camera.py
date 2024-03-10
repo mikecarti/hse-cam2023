@@ -9,7 +9,7 @@ import yaml
 
 class CameraProjection:
     """
-    This class represents a camera projection in a 3D space.
+    This class calculates a camera projection in a 3D space.
     """
 
     def __init__(self, camera_coords: np.ndarray, camera_angles: np.ndarray, fov: Tuple[float, float],
@@ -97,7 +97,7 @@ class CameraProjection:
 
         return intersection_points
 
-    def plot(self):
+    def plot(self) -> None:
         """
         Plot the FOV rectangle, camera point, plane, and intersection points.
         """
