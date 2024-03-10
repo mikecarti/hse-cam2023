@@ -6,6 +6,9 @@ import yaml
 
 
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
+# Чтобы сделать это можно взять проекцию исходящих векторов, которые не касаются плоскости
+# А затем найти их пересечение с границей поля
+
 
 class CameraProjection:
     """
@@ -29,6 +32,7 @@ class CameraProjection:
         self.near_distance = near_distance
         self.plane = plane
         self.SHOW_PROJECTION_LINES = True
+        self.DEBUG_SHOW_ALL_LINES = True
 
     def calculate_fov_rectangle(self) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
         """
@@ -92,7 +96,7 @@ class CameraProjection:
             t = (D - np.dot(normal, p0)) / np.dot(normal, v0)
             intersection_point = p0 + t * v0
 
-            if t < 0:
+            if t < 0 or self.DEBUG_SHOW_ALL_LINES:
                 intersection_points.append(intersection_point)
 
         return intersection_points
