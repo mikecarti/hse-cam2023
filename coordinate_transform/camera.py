@@ -34,9 +34,11 @@ class CameraProjection:
         self.SHOW_PROJECTION_LINES = True
         self.DEBUG_SHOW_ALL_LINES = True
 
-    def calculate_fov_rectangle(self) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
+    def calculate_focal_plane_rectangle(self) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
         """
-        This function calculates the fov rectangle for a given camera coordinates, angle and plane coordinates.
+        This function calculates the focal plane for a given camera coordinates, angle and plane coordinates.
+        Function returns corners of focal plane (literal point coordinates) and vectors of light
+        that go from focal plane corners to center of optical lens.
 
         Theta - rotation angle along the z axis.
         Phi - rotation angle along the x axis.
@@ -74,11 +76,11 @@ class CameraProjection:
         vectors = [corner - self.camera_coords for corner in corners]
         return tuple(corners), vectors
 
-    def find_intersection_points(self, corner_fov_vectors: List[np.ndarray]) -> List[np.ndarray]:
+    def find_intersection_points(self, corner_focal_plane_vectors: List[np.ndarray]) -> List[np.ndarray]:
         """
-        Find the intersection points of the FOV rectangle vectors with a given plane.
+        Find the intersection points of the focal plane corner vectors with a given plane.
 
-        :param corner_fov_vectors: Vectors from focal plane to optical lens centre.
+        :param corner_focal_plane_vectors: Vectors from focal plane to optical lens centre.
         :return: List of intersection points.
         """
         intersection_points = []
@@ -89,12 +91,29 @@ class CameraProjection:
         D = np.dot(normal, np.array(a1))
 
 
-        for vector in corner_fov_vectors:
-            p0 = np.array(self.camera_coords)
-            v0 = np.array(vector)
+        for vector in corner_focal_plane_vectors:
+            camera_vector = np.array(self.camera_coords)
+            focal_plane_corner_vector = np.array(vector)
 
-            t = (D - np.dot(normal, p0)) / np.dot(normal, v0)
-            intersection_point = p0 + t * v0
+            """
+            Let p0 be the camera vector and 
+            v0 be the direction vector of focal plane corner light, that goes through the
+            camera_vector (centre of focal lens).
+            
+            Then the parametric equation of the line can be defined as:
+            P(t) = p0 + t * v0            (P(t) is the point on the line)
+            
+            We need to find such t, that P(t) lies on the given plane. 
+            Substituting it into the plane equation we get:
+            a(P0_x + tV0_x) + b(P0_y + tV0_y) + c(P0_z + tV0_z) = d
+            
+            Solving for t:
+            t = ( D - (normal @ P0) ) / (normal @ V0)
+            
+            We are interested in t < 0, as positive values correspond to wrong light direction
+            """
+            t = (D - np.dot(normal, camera_vector)) / np.dot(normal, focal_plane_corner_vector)
+            intersection_point = camera_vector + t * focal_plane_corner_vector
 
             # if t > 0, camera corner vector fall behind the camera, which actually means
             # that this vector does not fall on the observed rectangle of the plane
@@ -112,7 +131,7 @@ class CameraProjection:
 
         ax.scatter(*self.camera_coords, color='red', label='Оптический центр линзы')
 
-        corners, corner_fov_vectors = self.calculate_fov_rectangle()
+        corners, corner_fov_vectors = self.calculate_focal_plane_rectangle()
         x_vals, y_vals, z_vals = zip(*corners)
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
                 label="Фокальная плоскость камеры")
