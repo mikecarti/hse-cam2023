@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from typing import Tuple, List
 
 import yaml
-
+from loguru import logger
 
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 # Чтобы сделать это можно взять проекцию исходящих векторов, которые не касаются плоскости
@@ -74,28 +74,30 @@ class CameraProjection:
         vectors = [corner - self.camera_coords for corner in corners]
         return tuple(corners), vectors
 
-    def find_intersection_points(self, corners: Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray],
-                                 vectors: List[np.ndarray]) -> List[np.ndarray]:
+    def find_intersection_points(self, corner_fov_vectors: List[np.ndarray]) -> List[np.ndarray]:
         """
-        Find the intersection points of the FOV rectangle with a given plane.
+        Find the intersection points of the FOV rectangle vectors with a given plane.
 
-        :param corners: Corners of the FOV rectangle.
-        :param vectors: Vectors from camera to corners.
+        :param corner_fov_vectors: Vectors from focal plane to optical lens centre.
         :return: List of intersection points.
         """
         intersection_points = []
 
         a1, a2, a3 = self.plane[0], self.plane[1], self.plane[2]
         normal = np.cross(np.array(a2) - np.array(a1), np.array(a3) - np.array(a1))
+        # plane equation: ax + by + cz = D
         D = np.dot(normal, np.array(a1))
 
-        for vector in vectors:
+
+        for vector in corner_fov_vectors:
             p0 = np.array(self.camera_coords)
             v0 = np.array(vector)
 
             t = (D - np.dot(normal, p0)) / np.dot(normal, v0)
             intersection_point = p0 + t * v0
 
+            # if t > 0, camera corner vector fall behind the camera, which actually means
+            # that this vector does not fall on the observed rectangle of the plane
             if t < 0 or self.DEBUG_SHOW_ALL_LINES:
                 intersection_points.append(intersection_point)
 
@@ -110,7 +112,7 @@ class CameraProjection:
 
         ax.scatter(*self.camera_coords, color='red', label='Оптический центр линзы')
 
-        corners, vectors = self.calculate_fov_rectangle()
+        corners, corner_fov_vectors = self.calculate_fov_rectangle()
         x_vals, y_vals, z_vals = zip(*corners)
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
                 label="Фокальная плоскость камеры")
@@ -120,13 +122,13 @@ class CameraProjection:
                 [self.plane[i][2] for i in range(4)] + [self.plane[0][2]],
                 color='green', alpha=0.5, label="Наблюдаемая плоскость")
 
-        for vector in vectors:
+        for vector in corner_fov_vectors:
             ax.plot([self.camera_coords[0], self.camera_coords[0] + vector[0]],
                     [self.camera_coords[1], self.camera_coords[1] + vector[1]],
                     [self.camera_coords[2], self.camera_coords[2] + vector[2]], color='purple')
 
         # Points of Intersect
-        intersection_points = self.find_intersection_points(corners, vectors)
+        intersection_points = self.find_intersection_points(corner_fov_vectors)
         intersection_x_vals, intersection_y_vals, intersection_z_vals = zip(*intersection_points)
         ax.plot(intersection_x_vals, intersection_y_vals, intersection_z_vals, 'ko', label='Intersection Points')
 
