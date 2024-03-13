@@ -2,7 +2,8 @@ import random
 import pandas as pd
 import yaml
 
-#TODO: приступить к работе с хитмапами на каждого игрока
+
+# TODO: приступить к работе с хитмапами на каждого игрока
 # для последующей имплементации в симуляции, прописать пару-тройку дефолтных
 # формаций для команд вместо рандомно генерящихся.
 
@@ -101,6 +102,7 @@ class Team:
         for player in self.players:
             player.move(grid)
 
+
 class SoccerMatch:
     """
     This class represents a soccer match.
@@ -135,7 +137,7 @@ class SoccerMatch:
         """
 
         data = []
-        for i in range(1*15*25): 
+        for i in range(1 * 15 * 25):
             self.team1.move(self.grid)
             self.team2.move(self.grid)
             for team in [self.team1, self.team2]:
@@ -143,6 +145,7 @@ class SoccerMatch:
                     data.append([i, team.name, player.player_id, *player.current_position])
         df = pd.DataFrame(data, columns=['Frame', 'Team', 'Player', 'X', 'Y'])
         return df
+
 
 with open("simulation_config.yaml", "r") as config_file:
     sim_config = yaml.safe_load(config_file)
