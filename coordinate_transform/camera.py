@@ -5,6 +5,7 @@ from typing import Tuple, List
 import yaml
 from geometry.solver import GeometrySolver3D
 
+Quadrilateral = Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 # Чтобы сделать это можно взять проекцию исходящих векторов, которые не касаются плоскости
@@ -17,7 +18,7 @@ class CameraProjection:
     """
 
     def __init__(self, camera_coords: np.ndarray, camera_angles: np.ndarray, fov: Tuple[float, float],
-                 near_distance: float, plane: Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]):
+                 near_distance: float, rectangle: Quadrilateral):
         """
         Initialize the CameraProjection.
 
@@ -25,14 +26,15 @@ class CameraProjection:
         :param camera_angles: Camera angles in degrees in plane's coordinate system (Theta, Phi, Psi).
         :param fov: Field of view (FOV) angles in degrees.
         :param near_distance: Distance from the camera to the rectangle.
-        :param plane: Plane with z = 0 represented by four corner points.
+        :param rectangle: Plane with z = 0 represented by four corner points.
         """
         self.geo_solver = GeometrySolver3D()
+        self.ray_exit_rect_border_planes = self._determine_exit_border_planes(camera_coords, rectangle)
         self.camera_coords = camera_coords
         self.camera_angles = camera_angles
         self.fov = fov
         self.near_distance = near_distance
-        self.plane = plane
+        self.rectangle = rectangle
         self.SHOW_PROJECTION_LINES = True
         self.DEBUG_SHOW_ALL_LINES = True
 
@@ -88,24 +90,35 @@ class CameraProjection:
         """
         intersection_points = []
 
-        normal = self.geo_solver.calculate_plane_normal_vec(*self.plane[:3])
-        # plane equation: ax + by + cz = D
-        D = np.dot(normal, np.array(self.plane[0]))
+        normal = self.geo_solver.calculate_plane_normal_vec(*self.rectangle[:3])
+        # plane equation: ax + by + cz = (a,b,c)^T @ (x,y,z) = D
+        D = np.dot(normal, np.array(self.rectangle[0]))
+        camera_vector = np.array(self.camera_coords)
 
         for vector in corner_focal_plane_vectors:
-            camera_vector = np.array(self.camera_coords)
             focal_plane_corner_vector = np.array(vector)
 
             intersection_point, t = self.geo_solver.find_vector_plane_intersection(
                 D, camera_vector, focal_plane_corner_vector, normal
             )
-
-            # if t > 0, camera corner vector fall behind the camera, which actually means
-            # that this vector does not fall on the observed rectangle of the plane
+            # if t < 0, vector falls on the plane
             if t < 0 or self.DEBUG_SHOW_ALL_LINES:
                 intersection_points.append(intersection_point)
+            # if t > 0, vector does not fall on the plane, but flies into the sky
+            else:
+                pass
+                # TODO:
+                # determine opposite fields boundary
+                # define infinite walls (vert planes)
+                # run find_intersection to get intersection
+                # take x,y of intersection
+
 
         return intersection_points
+
+    def _determine_exit_border_planes(self, camera_coords: np.ndarray, rectangle: Quadrilateral):
+        camera_x, camera_y, _ = camera_coords
+        # TODO: for 2 consecutive parts calculate distance from cam
 
     def plot(self) -> None:
         """
@@ -121,9 +134,9 @@ class CameraProjection:
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
                 label="Фокальная плоскость камеры")
 
-        ax.plot([self.plane[i][0] for i in range(4)] + [self.plane[0][0]],
-                [self.plane[i][1] for i in range(4)] + [self.plane[0][1]],
-                [self.plane[i][2] for i in range(4)] + [self.plane[0][2]],
+        ax.plot([self.rectangle[i][0] for i in range(4)] + [self.rectangle[0][0]],
+                [self.rectangle[i][1] for i in range(4)] + [self.rectangle[0][1]],
+                [self.rectangle[i][2] for i in range(4)] + [self.rectangle[0][2]],
                 color='green', alpha=0.5, label="Наблюдаемая плоскость")
 
         for vector in corner_fov_vectors:
@@ -164,6 +177,7 @@ class CameraProjection:
         ax.legend(loc='upper right')
 
         plt.show()
+
 
 
 # Загрузка параметров из YAML файла
