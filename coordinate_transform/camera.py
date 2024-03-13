@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from typing import Tuple, List
 
 import yaml
-from loguru import logger
+from geometry.solver import GeometrySolver3D
+
 
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 # Чтобы сделать это можно взять проекцию исходящих векторов, которые не касаются плоскости
@@ -26,6 +27,7 @@ class CameraProjection:
         :param near_distance: Distance from the camera to the rectangle.
         :param plane: Plane with z = 0 represented by four corner points.
         """
+        self.geo_solver = GeometrySolver3D()
         self.camera_coords = camera_coords
         self.camera_angles = camera_angles
         self.fov = fov
@@ -34,7 +36,8 @@ class CameraProjection:
         self.SHOW_PROJECTION_LINES = True
         self.DEBUG_SHOW_ALL_LINES = True
 
-    def calculate_focal_plane_rectangle(self) -> Tuple[Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
+    def calculate_focal_plane_rectangle(self) -> Tuple[
+        Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
         """
         This function calculates the focal plane for a given camera coordinates, angle and plane coordinates.
         Function returns corners of focal plane (literal point coordinates) and vectors of light
@@ -85,35 +88,17 @@ class CameraProjection:
         """
         intersection_points = []
 
-        a1, a2, a3 = self.plane[0], self.plane[1], self.plane[2]
-        normal = np.cross(np.array(a2) - np.array(a1), np.array(a3) - np.array(a1))
+        normal = self.geo_solver.calculate_plane_normal_vec(*self.plane[:3])
         # plane equation: ax + by + cz = D
-        D = np.dot(normal, np.array(a1))
-
+        D = np.dot(normal, np.array(self.plane[0]))
 
         for vector in corner_focal_plane_vectors:
             camera_vector = np.array(self.camera_coords)
             focal_plane_corner_vector = np.array(vector)
 
-            """
-            Let p0 be the camera vector and 
-            v0 be the direction vector of focal plane corner light, that goes through the
-            camera_vector (centre of focal lens).
-            
-            Then the parametric equation of the line can be defined as:
-            P(t) = p0 + t * v0            (P(t) is the point on the line)
-            
-            We need to find such t, that P(t) lies on the given plane. 
-            Substituting it into the plane equation we get:
-            a(P0_x + tV0_x) + b(P0_y + tV0_y) + c(P0_z + tV0_z) = d
-            
-            Solving for t:
-            t = ( D - (normal @ P0) ) / (normal @ V0)
-            
-            We are interested in t < 0, as positive values correspond to wrong light direction
-            """
-            t = (D - np.dot(normal, camera_vector)) / np.dot(normal, focal_plane_corner_vector)
-            intersection_point = camera_vector + t * focal_plane_corner_vector
+            intersection_point, t = self.geo_solver.find_vector_plane_intersection(
+                D, camera_vector, focal_plane_corner_vector, normal
+            )
 
             # if t > 0, camera corner vector fall behind the camera, which actually means
             # that this vector does not fall on the observed rectangle of the plane
