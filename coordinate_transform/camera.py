@@ -16,7 +16,7 @@ Plane = Tuple[np.ndarray, np.ndarray, np.ndarray]
 # А затем найти их пересечение с границей поля
 
 
-class CameraProjection:
+class CameraProjectionSimulation:
     """
     This class calculates a camera projection in a 3D space.
     """
@@ -116,11 +116,13 @@ class CameraProjection:
                 intersection_points.append(intersection_point)
             # if t > 0, vector does not fall on the plane, but flies into the sky
             else:
-                intersection_points = self._find_upwards_oriented_ray_intersection_points(D, camera_vector, focal_plane_corner_vector,
-                                                                        intersection_points)
+                intersection_points = self._find_upwards_oriented_ray_intersection_points(D, camera_vector,
+                                                                                          focal_plane_corner_vector,
+                                                                                          intersection_points)
         return intersection_points
 
-    def _find_upwards_oriented_ray_intersection_points(self, D: float, camera_vector: np.array, focal_plane_corner_vector: np.array,
+    def _find_upwards_oriented_ray_intersection_points(self, D: float, camera_vector: np.array,
+                                                       focal_plane_corner_vector: np.array,
                                                        intersection_points: List[np.array]) -> List[np.array]:
         """
         Some rays from camera, do not hit the plane, for these rays, this function finds x,y projection of such points,
@@ -173,7 +175,6 @@ class CameraProjection:
         @param rectangle: Quadrilateral
         @return: List of Planes
         """
-        camera_x, camera_y, _ = camera_coords
         exit_border_planes = []
 
         plane_defining_points_n = 3
@@ -193,12 +194,13 @@ class CameraProjection:
             exit_border_planes.append(border_plane)
         return exit_border_planes
 
-    def plot(self) -> None:
+    def plot(self, ax=None) -> None:
         """
         Plot the simulation.
         """
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+        if ax is None:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
 
         ax.scatter(*self.camera_coords, color='red', label='Оптический центр линзы')
 
@@ -261,17 +263,24 @@ class CameraProjection:
 
         plt.show()
 
+    def update_camera_coordinates(self, theta, phi, psi):
+        self.camera_coords = np.array([theta, phi, psi])
 
-with open("coordinate_transform/cam_config.yaml", "r") as config_file:
-    config = yaml.safe_load(config_file)
+    @staticmethod
+    def init_from_config():
+        with open("coordinate_transform/cam_config.yaml", "r") as config_file:
+            config = yaml.safe_load(config_file)
 
-length = config["length"]
-width = config["width"]
-camera_coords = np.array(config["camera_coords"])
-camera_angles = np.array(config["camera_angles"])
-fov = tuple(config["fov"])
-near_distance = config["near_distance"]
-plane = np.array([(0, 0, 0), (length, 0, 0), (length, width, 0), (0, width, 0)])  # Plane with z = 0
+        length = config["length"]
+        width = config["width"]
+        camera_coords = np.array(config["camera_coords"])
+        camera_angles = np.array(config["camera_angles"])
+        fov = tuple(config["fov"])
+        near_distance = config["near_distance"]
+        plane = np.array([(0, 0, 0), (length, 0, 0), (length, width, 0), (0, width, 0)])  # Plane with z = 0
 
-projection = CameraProjection(camera_coords, camera_angles, fov, near_distance, plane, length, width)
+        return CameraProjectionSimulation(camera_coords, camera_angles, fov, near_distance, plane, length, width)
+
+
+projection = CameraProjectionSimulation.init_from_config()
 projection.plot()
