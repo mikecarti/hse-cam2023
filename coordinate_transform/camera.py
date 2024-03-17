@@ -122,6 +122,15 @@ class CameraProjection:
 
     def _find_upwards_oriented_ray_intersection_points(self, D, camera_vector, focal_plane_corner_vector,
                                                        intersection_points):
+        """
+        Some rays from camera, do not hit the plane, for these rays, this function finds x,y projection of such points,
+        it stores it in the intersection_points list inplace
+        @param D:
+        @param camera_vector:
+        @param focal_plane_corner_vector:
+        @param intersection_points:
+        @return:
+        """
         intersection_point_found = False
         log_buffer = []
         for border_plane in self.ray_exit_rect_border_planes:
@@ -149,6 +158,11 @@ class CameraProjection:
         return self.x_min <= intersection_point[0] <= self.x_max and self.y_min <= intersection_point[1] <= self.y_max
 
     def _determine_exit_border_planes(self, rectangle: Quadrilateral) -> List[Plane]:
+        """
+        Determine the exit border planes of our fov rays
+        @param rectangle: Quadrilateral
+        @return: List of Planes
+        """
         camera_x, camera_y, _ = camera_coords
         exit_border_planes = []
 
