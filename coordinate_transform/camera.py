@@ -1,11 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
+from loguru import logger
 
 import yaml
 from geometry.solver import GeometrySolver3D
 
 Quadrilateral = Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+Plane = Tuple[np.ndarray, np.ndarray, np.ndarray]
+
 
 # TODO: зафиксить проблему того, что точки выпадают за пределы поля и не прорисовывают верный 4-угольник
 # Чтобы сделать это можно взять проекцию исходящих векторов, которые не касаются плоскости
@@ -18,7 +21,7 @@ class CameraProjection:
     """
 
     def __init__(self, camera_coords: np.ndarray, camera_angles: np.ndarray, fov: Tuple[float, float],
-                 near_distance: float, rectangle: Quadrilateral):
+                 near_distance: float, rectangle: Quadrilateral, length: float, width: float):
         """
         Initialize the CameraProjection.
 
@@ -29,14 +32,18 @@ class CameraProjection:
         :param rectangle: Plane with z = 0 represented by four corner points.
         """
         self.geo_solver = GeometrySolver3D()
-        self.ray_exit_rect_border_planes = self._determine_exit_border_planes(camera_coords, rectangle)
+        self.ray_exit_border_index = [1, 2, 3]
+
+        self.x_min, self.x_max = 0, length
+        self.y_min, self.y_max = 0, width
+        self.ray_exit_rect_border_planes = self._determine_exit_border_planes(rectangle)
         self.camera_coords = camera_coords
         self.camera_angles = camera_angles
         self.fov = fov
         self.near_distance = near_distance
         self.rectangle = rectangle
         self.SHOW_PROJECTION_LINES = True
-        self.DEBUG_SHOW_ALL_LINES = True
+        self.DEBUG_SHOW_ALL_LINES = False
 
     def calculate_focal_plane_rectangle(self) -> Tuple[
         Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
@@ -101,24 +108,66 @@ class CameraProjection:
             intersection_point, t = self.geo_solver.find_vector_plane_intersection(
                 D, camera_vector, focal_plane_corner_vector, normal
             )
+            if self.DEBUG_SHOW_ALL_LINES:
+                intersection_points.append(intersection_point)
+
             # if t < 0, vector falls on the plane
-            if t < 0 or self.DEBUG_SHOW_ALL_LINES:
+            if t < 0:
                 intersection_points.append(intersection_point)
             # if t > 0, vector does not fall on the plane, but flies into the sky
             else:
-                pass
-                # TODO:
-                # determine opposite fields boundary
-                # define infinite walls (vert planes)
-                # run find_intersection to get intersection
-                # take x,y of intersection
-
-
+                D = self._find_upwards_oriented_ray_intersection_points(D, camera_vector, focal_plane_corner_vector,
+                                                                        intersection_points)
         return intersection_points
 
-    def _determine_exit_border_planes(self, camera_coords: np.ndarray, rectangle: Quadrilateral):
+    def _find_upwards_oriented_ray_intersection_points(self, D, camera_vector, focal_plane_corner_vector,
+                                                       intersection_points):
+        intersection_point_found = False
+        log_buffer = []
+        for border_plane in self.ray_exit_rect_border_planes:
+            border_normal = self.geo_solver.calculate_plane_normal_vec(*border_plane)
+            D = np.dot(border_normal, np.array(border_plane[0]))
+
+            intersection_point, _ = self.geo_solver.find_vector_plane_intersection(
+                D, camera_vector, focal_plane_corner_vector, border_normal
+            )
+
+            log_buffer.append(intersection_point)
+
+            if self._point_inside_rectangle(intersection_point):
+                p = intersection_point
+                intersection_point_projection = np.array([p[0], p[1], 0], dtype=np.float64)
+                intersection_points.append(intersection_point_projection)
+                intersection_point_found = True
+                break
+        if not intersection_point_found:
+            logger.error(f"No intersection point found, but found such points: {log_buffer}\nRemember, these are the "
+                         f"restrictions: x_min, x_max, y_min, y_max: {self.x_min, self.x_max, self.y_min, self.y_max}")
+        return D
+
+    def _point_inside_rectangle(self, intersection_point):
+        return self.x_min <= intersection_point[0] <= self.x_max and self.y_min <= intersection_point[1] <= self.y_max
+
+    def _determine_exit_border_planes(self, rectangle: Quadrilateral) -> List[Plane]:
         camera_x, camera_y, _ = camera_coords
-        # TODO: for 2 consecutive parts calculate distance from cam
+        exit_border_planes = []
+
+        plane_defining_points_n = 3
+        for i in range(plane_defining_points_n+1):
+            if i not in self.ray_exit_border_index:
+                continue
+
+            # next_point_index = (i + 1) % len(rectangle)
+            point_a = rectangle[i]
+            # for no index issues, represents cycle
+            point_b = rectangle[(i + 1) % len(rectangle)]
+
+            # add point with z=1
+            point_c = point_a + np.array([0, 0, 1])
+
+            border_plane = (point_a, point_b, point_c)
+            exit_border_planes.append(border_plane)
+        return exit_border_planes
 
     def plot(self) -> None:
         """
@@ -131,14 +180,17 @@ class CameraProjection:
 
         corners, corner_fov_vectors = self.calculate_focal_plane_rectangle()
         x_vals, y_vals, z_vals = zip(*corners)
+        # Focal plane
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
                 label="Фокальная плоскость камеры")
 
+        # Observed Rectangle
         ax.plot([self.rectangle[i][0] for i in range(4)] + [self.rectangle[0][0]],
                 [self.rectangle[i][1] for i in range(4)] + [self.rectangle[0][1]],
                 [self.rectangle[i][2] for i in range(4)] + [self.rectangle[0][2]],
                 color='green', alpha=0.5, label="Наблюдаемая плоскость")
 
+        # Fov vectors
         for vector in corner_fov_vectors:
             ax.plot([self.camera_coords[0], self.camera_coords[0] + vector[0]],
                     [self.camera_coords[1], self.camera_coords[1] + vector[1]],
@@ -173,14 +225,13 @@ class CameraProjection:
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         ax.set_zlabel('Z')
+        ax.set_zticks([])
 
         ax.legend(loc='upper right')
 
         plt.show()
 
 
-
-# Загрузка параметров из YAML файла
 with open("coordinate_transform/cam_config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 
@@ -192,5 +243,5 @@ fov = tuple(config["fov"])
 near_distance = config["near_distance"]
 plane = np.array([(0, 0, 0), (length, 0, 0), (length, width, 0), (0, width, 0)])  # Plane with z = 0
 
-projection = CameraProjection(camera_coords, camera_angles, fov, near_distance, plane)
+projection = CameraProjection(camera_coords, camera_angles, fov, near_distance, plane, length, width)
 projection.plot()
