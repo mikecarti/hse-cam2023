@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 from loguru import logger
+from copy import deepcopy
 
 import yaml
 from geometry.solver import GeometrySolver3D
@@ -33,7 +34,6 @@ class CameraProjection:
         """
         self.geo_solver = GeometrySolver3D()
         self.ray_exit_border_index = [1, 2, 3]
-
         self.x_min, self.x_max = 0, length
         self.y_min, self.y_max = 0, width
         self.ray_exit_rect_border_planes = self._determine_exit_border_planes(rectangle)
@@ -45,7 +45,7 @@ class CameraProjection:
         self.SHOW_PROJECTION_LINES = False
         self.DEBUG_SHOW_ALL_LINES = False
 
-    def calculate_focal_plane_rectangle(self) -> Tuple[
+    def _calculate_focal_plane_rectangle(self) -> Tuple[
         Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], List[np.ndarray]]:
         """
         This function calculates the focal plane for a given camera coordinates, angle and plane coordinates.
@@ -88,7 +88,7 @@ class CameraProjection:
         vectors = [corner - self.camera_coords for corner in corners]
         return tuple(corners), vectors
 
-    def find_intersection_points(self, corner_focal_plane_vectors: List[np.ndarray]) -> List[np.ndarray]:
+    def _find_intersection_points(self, corner_focal_plane_vectors: List[np.ndarray]) -> List[np.ndarray]:
         """
         Find the intersection points of the focal plane corner vectors with a given plane.
 
@@ -116,21 +116,23 @@ class CameraProjection:
                 intersection_points.append(intersection_point)
             # if t > 0, vector does not fall on the plane, but flies into the sky
             else:
-                D = self._find_upwards_oriented_ray_intersection_points(D, camera_vector, focal_plane_corner_vector,
+                intersection_points = self._find_upwards_oriented_ray_intersection_points(D, camera_vector, focal_plane_corner_vector,
                                                                         intersection_points)
         return intersection_points
 
-    def _find_upwards_oriented_ray_intersection_points(self, D, camera_vector, focal_plane_corner_vector,
-                                                       intersection_points):
+    def _find_upwards_oriented_ray_intersection_points(self, D: float, camera_vector: np.array, focal_plane_corner_vector: np.array,
+                                                       intersection_points: List[np.array]) -> List[np.array]:
         """
         Some rays from camera, do not hit the plane, for these rays, this function finds x,y projection of such points,
-        it stores it in the intersection_points list inplace
-        @param D:
-        @param camera_vector:
-        @param focal_plane_corner_vector:
-        @param intersection_points:
-        @return:
+        it stores it in the intersection_points list
+        @param D: float - ax + by + cz - plane equation
+        @param camera_vector: np.array
+        @param focal_plane_corner_vector: np.array
+        @param intersection_points: List[np.array]
+        @return: List[np.array]
         """
+        intersection_points = deepcopy(intersection_points)
+
         intersection_point_found = False
         log_buffer = []
         for border_plane in self.ray_exit_rect_border_planes:
@@ -153,9 +155,14 @@ class CameraProjection:
         if not intersection_point_found:
             logger.error(f"No intersection point found, but found such points: {log_buffer}\nRemember, these are the "
                          f"restrictions: x_min, x_max, y_min, y_max: {self.x_min, self.x_max, self.y_min, self.y_max}")
-        return D
+        return intersection_points
 
-    def _point_inside_rectangle(self, intersection_point):
+    def _point_inside_rectangle(self, intersection_point: np.array):
+        """
+        Check if a given point is inside the observed rectangle.
+        @param intersection_point: Point
+        @return: bool
+        """
         eps = 0.01
         x_valid = self.x_min - eps <= intersection_point[0] <= self.x_max + eps
         y_valid = self.y_min - eps <= intersection_point[1] <= self.y_max + eps
@@ -189,14 +196,14 @@ class CameraProjection:
 
     def plot(self) -> None:
         """
-        Plot the FOV rectangle, camera point, plane, and intersection points.
+        Plot the simulation.
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
         ax.scatter(*self.camera_coords, color='red', label='Оптический центр линзы')
 
-        corners, corner_fov_vectors = self.calculate_focal_plane_rectangle()
+        corners, corner_fov_vectors = self._calculate_focal_plane_rectangle()
         x_vals, y_vals, z_vals = zip(*corners)
         # Focal plane
         ax.plot(x_vals + (x_vals[0],), y_vals + (y_vals[0],), z_vals + (z_vals[0],), color='blue',
@@ -221,7 +228,7 @@ class CameraProjection:
                     [self.camera_coords[2], self.camera_coords[2] + vector[2]], color='purple')
 
         # Points of Intersect
-        intersection_points = self.find_intersection_points(corner_fov_vectors)
+        intersection_points = self._find_intersection_points(corner_fov_vectors)
         intersection_x_vals, intersection_y_vals, intersection_z_vals = zip(*intersection_points)
         ax.plot(intersection_x_vals, intersection_y_vals, intersection_z_vals, 'ko', label='Intersection Points')
 
