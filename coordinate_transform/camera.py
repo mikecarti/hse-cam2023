@@ -139,7 +139,6 @@ class CameraProjection:
             border_normal = self.geo_solver.calculate_plane_normal_vec(*border_plane)
             D = np.dot(border_normal, np.array(border_plane[0]))
 
-            focal_plane_corner_vector = -focal_plane_corner_vector
             intersection_point, _ = self.geo_solver.find_vector_plane_intersection(
                 D, camera_vector, focal_plane_corner_vector, border_normal
             )
