@@ -42,7 +42,7 @@ class CameraProjection:
         self.fov = fov
         self.near_distance = near_distance
         self.rectangle = rectangle
-        self.SHOW_PROJECTION_LINES = True
+        self.SHOW_PROJECTION_LINES = False
         self.DEBUG_SHOW_ALL_LINES = False
 
     def calculate_focal_plane_rectangle(self) -> Tuple[
@@ -137,6 +137,7 @@ class CameraProjection:
             border_normal = self.geo_solver.calculate_plane_normal_vec(*border_plane)
             D = np.dot(border_normal, np.array(border_plane[0]))
 
+            focal_plane_corner_vector = -focal_plane_corner_vector
             intersection_point, _ = self.geo_solver.find_vector_plane_intersection(
                 D, camera_vector, focal_plane_corner_vector, border_normal
             )
@@ -155,7 +156,10 @@ class CameraProjection:
         return D
 
     def _point_inside_rectangle(self, intersection_point):
-        return self.x_min <= intersection_point[0] <= self.x_max and self.y_min <= intersection_point[1] <= self.y_max
+        eps = 0.01
+        x_valid = self.x_min - eps <= intersection_point[0] <= self.x_max + eps
+        y_valid = self.y_min - eps <= intersection_point[1] <= self.y_max + eps
+        return x_valid and y_valid
 
     def _determine_exit_border_planes(self, rectangle: Quadrilateral) -> List[Plane]:
         """
@@ -167,7 +171,7 @@ class CameraProjection:
         exit_border_planes = []
 
         plane_defining_points_n = 3
-        for i in range(plane_defining_points_n+1):
+        for i in range(plane_defining_points_n + 1):
             if i not in self.ray_exit_border_index:
                 continue
 
@@ -199,10 +203,16 @@ class CameraProjection:
                 label="Фокальная плоскость камеры")
 
         # Observed Rectangle
+        # x,y,z
         ax.plot([self.rectangle[i][0] for i in range(4)] + [self.rectangle[0][0]],
                 [self.rectangle[i][1] for i in range(4)] + [self.rectangle[0][1]],
                 [self.rectangle[i][2] for i in range(4)] + [self.rectangle[0][2]],
-                color='green', alpha=0.5, label="Наблюдаемая плоскость")
+                color='darkgreen', alpha=0.5, label="Наблюдаемая плоскость (Ray enter)")
+
+        ax.plot([self.rectangle[i][0] for i in range(4) if i in self.ray_exit_border_index] + [self.rectangle[0][0]],
+                [self.rectangle[i][1] for i in range(4) if i in self.ray_exit_border_index] + [self.rectangle[0][1]],
+                [self.rectangle[i][2] for i in range(4) if i in self.ray_exit_border_index] + [self.rectangle[0][2]],
+                color='lime', alpha=0.5, label="Наблюдаемая плоскость (Ray Exit)")
 
         # Fov vectors
         for vector in corner_fov_vectors:
