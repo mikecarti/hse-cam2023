@@ -5,7 +5,7 @@ from loguru import logger
 from copy import deepcopy
 
 import yaml
-from geometry.solver import GeometrySolver3D
+from .geometry.solver import GeometrySolver3D
 
 Quadrilateral = Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 Plane = Tuple[np.ndarray, np.ndarray, np.ndarray]
@@ -261,14 +261,14 @@ class CameraProjectionSimulation:
 
         ax.legend(loc='upper right')
 
-        plt.show()
+        plt.show(block=False)
 
-    def update_camera_coordinates(self, theta, phi, psi):
-        self.camera_coords = np.array([theta, phi, psi])
+    def update_camera_angle(self, theta, phi, psi):
+        self.camera_angles = np.array([theta, phi, psi])
 
     @staticmethod
     def init_from_config():
-        with open("coordinate_transform/cam_config.yaml", "r") as config_file:
+        with open("cam_control/cam_simulation/cam_config.yaml", "r") as config_file:
             config = yaml.safe_load(config_file)
 
         length = config["length"]
