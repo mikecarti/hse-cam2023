@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-import time
-from coordinate_transform.camera import CameraProjectionSimulation
+from cam_simulation.camera import CameraProjectionSimulation
+
+import matplotlib.pyplot as plt
+
 
 class SimulationController:
     def __init__(self, camera_projection_sim: CameraProjectionSimulation):
@@ -23,7 +23,7 @@ class SimulationController:
             theta = int(input('Theta:'))
             phi = int(input('Phi:'))
             psi = int(input('Psi:'))
-            self.camera_sim.update_camera_coordinates(theta,phi,psi)
+            self.camera_sim.update_camera_angle(theta, phi, psi)
             # Clear previous plot
             ax.clear()
 
@@ -32,9 +32,9 @@ class SimulationController:
 
             # Pause for the frame duration
             plt.pause(frame_duration)
-        plt.show()
 
 
 if __name__ == '__main__':
-    camera_sim = CameraProjectionSimulation()
-    controller = SimulationController()
+    camera_sim = CameraProjectionSimulation.init_from_config()
+    controller = SimulationController(camera_sim)
+    controller.control_simulation(frame_duration=1)
