@@ -1,7 +1,7 @@
 length: 50
 width: 25
 camera_coords: [25, -5, 5]
-camera_angles: [90, 5, 0]
+camera_angles: [120, 5, 0]
 fov: [180, 90]
 near_distance: 2
 
