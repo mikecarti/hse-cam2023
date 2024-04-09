@@ -8,3 +8,4 @@ imageio-ffmpeg==0.4.9
 Pyarrow==15.0.0
 opencv-python==4.9.0.80
 PyYAML
+PySide6
