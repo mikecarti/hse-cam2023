@@ -13,11 +13,20 @@ class CamSimulation:
         field_size = self.fov_calculator.get_field_size()
         self.plotter.set_field_size(field_size)
 
+        time = 0
+        yaw, pitch = 0, 0
         while True:
-            fov_points = self.fov_calculator.get_points_of_fov()[0]
-            # observed_objects_positions = self.player_sim.get_positions()
+            camera_properties = {"yaw": yaw, "pitch": pitch}
+            fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
+            # observed_objects_positions = self.player_sim.get_positions(time)
             observed_objects_positions = np.array([[1,1], [2,2], [3,3], [4,16]])
-            self.plotter.plot(fov_points, observed_objects_positions)
+            self.plotter.plot(fov_points, observed_objects_positions, rotation_coordinates=(yaw,pitch))
+
+            yaw += 10
+            pitch += 10
+            time += 1
+
+
 
 
 

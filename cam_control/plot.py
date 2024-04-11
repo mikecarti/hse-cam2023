@@ -10,7 +10,8 @@ class Plotter:
     def __init__(self):
         self.fov_calculator = FOVCalculator()
 
-    def plot(self, fov_points, observed_objects_positions: np.ndarray) -> None:
+    def plot(self, fov_points, observed_objects_positions: np.ndarray,
+             rotation_coordinates: Tuple[float, float]) -> None:
         """
         Plot the field of view and the observed objects.
 
@@ -22,11 +23,12 @@ class Plotter:
         self.plot_fov(ax, fov_points)
         self.plot_agents(ax, observed_objects_positions)
         self.plot_field(ax)
+        self.plot_legend(ax, rotation_coordinates)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.show()
 
-    def plot_fov(self, ax, points,color="r"):
+    def plot_fov(self, ax, points, color="r"):
         for i in range(len(points)):
             ax.scatter(points[i][0], points[i][1], c=color, marker='o')
             ax.plot([points[i][0], points[(i + 1) % len(points)][0]],
@@ -48,6 +50,13 @@ class Plotter:
     def plot_agents(self, ax, observed_objects_positions: np.ndarray):
         pass
 
-    def set_field_size(self, field_size: Tuple[int,int]):
-        self.field_size = field_size
+    def plot_legend(self, ax, rotation_coordinates):
+        # Create a legend
+        yaw, roll = rotation_coordinates
+        legend_label = "yaw = {}, roll = {}".format(yaw, roll)
+        ax.plot([], [], label=legend_label)  # Assuming x_data, y_data are your plotting data
+        # Display the legend on the plot
+        ax.legend()
 
+    def set_field_size(self, field_size: Tuple[int, int]):
+        self.field_size = field_size
