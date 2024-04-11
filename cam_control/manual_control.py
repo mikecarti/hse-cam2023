@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
-from cam_simulation.camera import CameraProjectionSimulation
-
-import matplotlib.pyplot as plt
 
 
-class SimulationController:
+class SimulationManualController:
     def __init__(self, camera_projection_sim: CameraProjectionSimulation):
         self.camera_sim = camera_projection_sim
 
@@ -36,5 +33,5 @@ class SimulationController:
 
 if __name__ == '__main__':
     camera_sim = CameraProjectionSimulation.init_from_config()
-    controller = SimulationController(camera_sim)
+    controller = SimulationManualController(camera_sim)
     controller.control_simulation(frame_duration=1)
