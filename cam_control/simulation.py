@@ -7,27 +7,21 @@ from plot import Plotter
 class CamSimulation:
     def __init__(self):
         self.fov_calculator = FOVCalculator()
-        self.plotter = Plotter()
+        self.plotter = Plotter(field_size=self.fov_calculator.get_field_size())
 
     def simulate(self):
-        field_size = self.fov_calculator.get_field_size()
-        self.plotter.set_field_size(field_size)
-
         time = 0
-        yaw, pitch = 0, 0
+        delta_yaw, delta_pitch = 0.5, 0.0
         while True:
-            camera_properties = {"yaw": yaw, "pitch": pitch}
+            current_yaw, current_pitch = self.fov_calculator.get_rotation_coords()
+            camera_properties = {"yaw": current_yaw + delta_yaw, "pitch": current_pitch + delta_pitch}
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
             # observed_objects_positions = self.player_sim.get_positions(time)
-            observed_objects_positions = np.array([[1,1], [2,2], [3,3], [4,16]])
-            self.plotter.plot(fov_points, observed_objects_positions, rotation_coordinates=(yaw,pitch))
+            observed_objects_positions = np.array([[1, 1], [2, 2], [3, 3], [4, 16]])
+            self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties)
 
-            yaw += 10
-            pitch += 10
+            print(f"{camera_properties}")
             time += 1
-
-
-
 
 
 if __name__ == '__main__':
