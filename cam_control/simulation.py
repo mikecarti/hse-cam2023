@@ -2,8 +2,10 @@ import os
 import sys
 
 current_dir = os.getcwd()
-sys.path.append(current_dir + "/cam_control")
-
+cam_dir = current_dir + "/cam_control"
+sys.path.append(cam_dir)
+cam_sim = cam_dir + "/cam_simulation"
+sys.path.append(cam_sim)
 
 import numpy as np
 from player_detect import PlayerDetector
@@ -41,8 +43,6 @@ class CamSimulation:
 
             logger.info(f"{camera_properties}")
             time += 1
-
-
 
 
 if __name__ == '__main__':
