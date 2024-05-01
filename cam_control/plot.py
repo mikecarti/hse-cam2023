@@ -10,9 +10,11 @@ class Plotter:
     def __init__(self, field_size: Tuple[float, float]):
         self.fig, self.ax = plt.subplots()
 
-        self.field_size = field_size
+        self.field_size = field_size  # (width, height)
         self.plot_field()
         self.fov_calculator = FOVCalculator()
+        self.ax.set_aspect('equal')
+
 
         self.legend = None
         self.lines = []
@@ -67,17 +69,23 @@ class Plotter:
         ax = self.ax
         height, width = self.field_size
         # Calculate other corners of the rectangle
-        top_right = (height + width, height)
-        bottom_left = (height, height - width)
-        bottom_right = (height + width, height - width)
+        top_right = (width, height)
+        top_left = (0, height)
+        bottom_left = (0, 0)
+        bottom_right = (width, 0)
 
         # Plot rectangle edges
-        ax.plot([height, top_right[0]], [height, height], c='g')  # Top edge
-        ax.plot([top_right[0], top_right[0]], [height, bottom_right[1]], c='g')  # Right edge
-        ax.plot([top_right[0], height], [bottom_right[1], bottom_left[1]], c='g')  # Bottom edge
-        ax.plot([height, height], [bottom_left[1], height], c='g')  # Left edge
+        ax.plot([top_left[0], top_right[0]], [top_left[1], top_right[1]], c='g')
+        ax.plot([top_right[0], bottom_right[0]], [top_right[1], bottom_right[1]], c='g')
+        ax.plot([bottom_right[0], bottom_left[0]], [bottom_right[1], bottom_left[1]], c='g')
+        ax.plot([bottom_left[0], top_left[0]], [bottom_left[1], top_left[1]], c='g')
 
     def plot_agents(self, observed_objects_positions: np.ndarray):
+        ax = self.ax
+        x_coords = observed_objects_positions[:, 0]
+        y_coords = observed_objects_positions[:, 1]
+        # Plot agents
+        ax.scatter(x_coords, y_coords, color='blue')
         pass
 
     def plot_legend(self, yaw, pitch):
