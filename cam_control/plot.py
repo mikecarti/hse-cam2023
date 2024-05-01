@@ -1,5 +1,6 @@
 from typing import Tuple, Dict
 
+from utils import calc_corners
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 import matplotlib.pyplot as plt
 import numpy as np
@@ -67,12 +68,9 @@ class Plotter:
 
     def plot_field(self):
         ax = self.ax
-        height, width = self.field_size
+        width, height = self.field_size
         # Calculate other corners of the rectangle
-        top_right = (width, height)
-        top_left = (0, height)
-        bottom_left = (0, 0)
-        bottom_right = (width, 0)
+        bottom_left, bottom_right, top_left, top_right = calc_corners(height, width)
 
         # Plot rectangle edges
         ax.plot([top_left[0], top_right[0]], [top_left[1], top_right[1]], c='g')
@@ -84,8 +82,10 @@ class Plotter:
         ax = self.ax
         x_coords = observed_objects_positions[:, 0]
         y_coords = observed_objects_positions[:, 1]
-        # Plot agents
-        ax.scatter(x_coords, y_coords, color='blue')
+
+        # Plot agents with customized line plot
+        ax.plot(x_coords, y_coords, marker='o', color='blue', linestyle='')  # Change marker style and color
+        # Here, linestyle='' means no connecting lines between markers
         pass
 
     def plot_legend(self, yaw, pitch):
