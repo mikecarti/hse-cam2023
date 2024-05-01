@@ -3,6 +3,7 @@ import numpy as np
 from enum import Enum
 from utils import calc_corners
 from numpy.linalg import norm
+from loguru import logger
 
 
 class Direction(Enum):
@@ -36,7 +37,7 @@ class SnakeStrategy(Strategy):
 
         self.prev_direction = None
 
-    def move(self, fov_points: np.ndarray, yaw: float, pitch: float, t: float) -> Tuple[float, float]:
+    def move(self, fov_points: np.ndarray, yaw: float, pitch: float) -> Tuple[float, float]:
         """
         Calculates the delta movement of the camera angle: yaw and pitch
         """
@@ -65,6 +66,8 @@ class SnakeStrategy(Strategy):
                 self._change_direction(Direction.UP)
         else:
             raise ValueError(f"Invalid direction: {self.direction}")
+
+        logger.debug(f"Going in {self.direction.name} direction")
 
         return self._determine_delta_rotation(fov_points, yaw, pitch)
 
