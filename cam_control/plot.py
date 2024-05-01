@@ -8,10 +8,11 @@ import numpy as np
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float]):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float]):
         self.fig, self.ax = plt.subplots()
 
         self.field_size = field_size  # (width, height)
+        self.field_loc = field_loc  # (x, y)
         self.plot_field()
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
@@ -70,7 +71,8 @@ class Plotter:
         ax = self.ax
         width, height = self.field_size
         # Calculate other corners of the rectangle
-        bottom_left, bottom_right, top_left, top_right = calc_corners(height, width)
+        bottom_left, bottom_right, top_left, top_right = calc_corners(height, width, loc=self.field_loc)
+
 
         # Plot rectangle edges
         ax.plot([top_left[0], top_right[0]], [top_left[1], top_right[1]], c='g')

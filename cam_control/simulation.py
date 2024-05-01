@@ -19,9 +19,13 @@ class CamSimulation:
     def __init__(self):
         self.fov_calculator = FOVCalculator()
         field_size = self.fov_calculator.get_field_size()
-        self.plotter = Plotter(field_size=field_size)
+        field_loc = self.fov_calculator.get_field_loc()
+        self.plotter = Plotter(field_size=field_size, field_loc=field_loc)
         self.player_detector = PlayerDetector()
-        self.strategy = SnakeStrategy(field_size=field_size)
+        self.strategy = SnakeStrategy(field_size=field_size, field_loc=field_loc)
+
+        self.log_angles = False
+        self.log_players = False
 
     def simulate(self, observed_objects_positions: np.ndarray):
         time = 0
@@ -33,15 +37,17 @@ class CamSimulation:
             current_yaw, current_pitch = self.fov_calculator.get_rotation_coords()
             camera_properties = {"yaw": current_yaw + delta_yaw, "pitch": current_pitch + delta_pitch}
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            delta_yaw, delta_pitch = self.strategy.move(fov_points, current_yaw, current_pitch)
+            delta_yaw, delta_pitch = self.strategy.move(fov_points, current_yaw, current_pitch, time)
 
             observed_objects_positions = np.array([[25, 25], [45, 25], [65, 25], [85, 25]])
             players_inside_fov = self.player_detector.which_players_inside_fov(observed_objects_positions, fov_points)
-            logger.info(f"Players that are inside FOV: {players_inside_fov}")
             # observed_objects_positions = self.player_sim.get_positions(time)
             self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties)
 
-            logger.info(f"{camera_properties}")
+            if self.log_angles:
+                logger.info(f"{camera_properties}")
+            if self.log_players:
+                logger.info(f"Players that are inside FOV: {players_inside_fov}")
             time += 1
 
 
