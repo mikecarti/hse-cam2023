@@ -4,7 +4,7 @@ import sys
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
 sys.path.append(cam_dir)
-cam_sim = cam_dir + "/cam_simulation"
+cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
 import numpy as np
