@@ -1,3 +1,6 @@
+import os
+import sys
+
 import numpy as np
 
 from cam_control.player_detect import PlayerDetector
@@ -6,6 +9,8 @@ from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger
 
+current_dir = os.getcwd()
+sys.path.append(current_dir + "/cam_control")
 
 class CamSimulation:
     def __init__(self):
