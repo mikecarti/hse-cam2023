@@ -1,3 +1,0 @@
-[submodule "cam_control/cam_simulation/diplomagm"]
-	path = cam_control/cam_simulation/diplomagm
-	url = https://gitlab.car.cos.ru/mgantsev/diplomagm.git
