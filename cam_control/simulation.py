@@ -19,8 +19,8 @@ class CamSimulation:
             current_yaw, current_pitch = self.fov_calculator.get_rotation_coords()
             camera_properties = {"yaw": current_yaw + delta_yaw, "pitch": current_pitch + delta_pitch}
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            observed_objects_positions = np.array([[2, 2], [4, 4], [6, 6], [16, 16]])
-            players_inside_fov = self.player_detector.get_players_inside_fov(observed_objects_positions, fov_points)
+            observed_objects_positions = np.array([[25, 25], [45, 25], [65, 25], [85, 25]])
+            players_inside_fov = self.player_detector.which_players_inside_fov(observed_objects_positions, fov_points)
             logger.info(f"Players that are inside FOV: {players_inside_fov}")
             # observed_objects_positions = self.player_sim.get_positions(time)
             self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties)
