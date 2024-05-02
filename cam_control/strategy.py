@@ -18,30 +18,36 @@ class Strategy:
 
 
 class SnakeStrategy(Strategy):
-    def __init__(self, field_size: Tuple[float, float]):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float]):
         self.width, self.height = field_size
-        self.direction = Direction.RIGHT
+        self.time = 0
+        self.direction = Direction.LEFT
+        self._change_direction(Direction.RIGHT)
 
         self.bottom_left, self.bottom_right, self.top_left, self.top_right = (
-            calc_corners(width=self.width, height=self.height))
+            calc_corners(width=self.width, height=self.height, loc=field_loc))
         self.top_border = np.array((self.top_left, self.top_right))
         self.bottom_border = np.array((self.bottom_left, self.bottom_right))
         self.left_border = np.array((self.top_left, self.bottom_left))
         self.right_border = np.array((self.top_right, self.bottom_right))
 
-        self.min_margin = 10
+        print(calc_corners(width=self.width, height=self.height))
+
+        self.min_margin = 2
         self.delta_yaw = 0.1
         self.delta_pitch = 0.1
         self.went_up_iterations_in_a_row = 0
-        self.max_iter_up_in_a_row = 500
+        self.max_iter_up_in_a_row = 100
 
         self.prev_direction = None
+        self.furthest_corners = [1,2]
 
-    def move(self, fov_points: np.ndarray, yaw: float, pitch: float) -> Tuple[float, float]:
+    def move(self, fov_points: np.ndarray, yaw: float, pitch: float, t: int) -> Tuple[float, float]:
         """
         Calculates the delta movement of the camera angle: yaw and pitch
         """
-        fov_points = fov_points[:, :2]
+        fov_points = fov_points[self.furthest_corners, :2]
+        self.time = t
 
         if self.direction == Direction.RIGHT:
             margin_from_border = self._distance_between_closest_point_and_line(self.right_border, fov_points)
@@ -52,7 +58,7 @@ class SnakeStrategy(Strategy):
             if self.went_up_iterations_in_a_row > self.max_iter_up_in_a_row:
                 self._change_direction(self._opposite_of_prev_direction())
                 self.went_up_iterations_in_a_row = 0
-            elif margin_from_border < self.min_margin:
+            elif margin_from_border < self.min_margin and self.prev_direction:
                 return 0, 0
             else:
                 self.went_up_iterations_in_a_row += 1
@@ -67,7 +73,7 @@ class SnakeStrategy(Strategy):
         else:
             raise ValueError(f"Invalid direction: {self.direction}")
 
-        logger.debug(f"Going in {self.direction.name} direction")
+        # logger.debug(f"{t}: Going in {self.direction.name} direction")
 
         return self._determine_delta_rotation(fov_points, yaw, pitch)
 
@@ -88,8 +94,9 @@ class SnakeStrategy(Strategy):
 
         distances = []
         for point in points:
-            d = norm(np.cross(p2 - p1, line[0, :] - point)) / norm(p2 - p1)
+            d = norm(np.cross(p2 - p1, p1 - point)) / norm(p2 - p1)
             distances.append(d)
+        # logger.debug(f"Distances between points: {distances}, {min(distances)}")
         return min(distances)
 
     def _determine_delta_rotation(self, fov_points, yaw, pitch) -> Tuple[float, float]:
@@ -118,4 +125,6 @@ class SnakeStrategy(Strategy):
 
         if to == Direction.UP:
             self.went_up_iterations_in_a_row = 0
+
+        logger.debug(f"{self.time}: Changing direction to {self.direction.name}")
         return to

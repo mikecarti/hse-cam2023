@@ -59,13 +59,25 @@ class FOVCalculator:
             yaw = camera_properties.get('yaw')
             pitch = camera_properties.get('pitch')
             self.panoramic_systems = self._init_panoramic_system(yaw=yaw, pitch=pitch)
-        return np.array([panoramic_system.calculatePanoramicSystemFOV() for panoramic_system in self.panoramic_systems][0])
+        return np.array(self.panoramic_systems[0].calculatePanoramicSystemFOV())
 
-    def get_field_size(self) -> Tuple["width", "length"]:
+    def get_field_size(self) -> Tuple[float, float]:
+        """
+        @return: Tuple[width, length]
+        """
         f = open(self.path_to_field)
         field_info = json.load(f)
         size = field_info.get("size")
         return size.get("width"), size.get("length")
+
+    def get_field_loc(self) -> Tuple[float, float]:
+        """
+        @return: Tuple[float, float]
+        """
+        f = open(self.path_to_field)
+        field_info = json.load(f)
+        coord = field_info.get("coordinates")
+        return coord.get("x"), coord.get("y")
 
     def get_rotation_coords(self):
         system = self.panoramic_systems[0]
