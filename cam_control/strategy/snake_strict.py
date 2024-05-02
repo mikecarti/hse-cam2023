@@ -71,9 +71,9 @@ class SnakeStrategyStrict(Strategy):
         target_vec_angle = self._vector_angle(target_vec)
 
         delta_yaw = target_vec_angle - init_vec_angle
-        # delta_pitch = atan(cam_height / target_radius) - cam_pitch
-        tan_pitch = norm(target_vec) / norm(cam_height)
-        raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
+        raw_pitch =np.degrees( math.asin(cam_height / norm(target_pos)) ) % 360.0
+        # tan_pitch = norm(target_vec) / norm(cam_height)
+        # raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
         pitch = 90 - raw_pitch
         delta_pitch = pitch - top_aov
 
@@ -85,7 +85,7 @@ class SnakeStrategyStrict(Strategy):
         AOV_v = 2 * math.degrees(math.atan(cam_height / (2 * focal_length)))
         # Determine angle of the most high-oriented ray
         angle_of_ray = AOV_v / 2
-        magical_constant = 0.75
+        magical_constant = 0.75 * 4 / 3
         adj_angle_of_ray = angle_of_ray * magical_constant
         logger.info(f"Vertical Angle Of View: {angle_of_ray}")
         return adj_angle_of_ray
