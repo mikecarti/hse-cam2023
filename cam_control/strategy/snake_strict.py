@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 import numpy as np
 from numpy.linalg import norm
 from strategy.core import Strategy
@@ -12,7 +12,8 @@ Point3D = Tuple[float, float, float] | np.array
 
 
 class SnakeStrategyStrict(Strategy):
-    def __init__(self, field_size: Tuple[float, float], field_loc: Point2D, cam_pos: Point3D, focal_length: float):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Point2D, cam_pos: Point3D,
+                 focal_length: float, image_sensor: Dict):
         super().__init__(field_size=field_size, field_loc=field_loc)
         self.trajectory = np.array([
             [60, 0],
@@ -21,11 +22,11 @@ class SnakeStrategyStrict(Strategy):
             [90, 80]
         ])
         self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
+        self.vert_aov = self._calculate_vert_aov(focal_length,  image_sensor["height"], image_sensor["width"])
 
         self.furthest_corners = [0, 3]
         self.debug = False
         self.cam_pos = cam_pos
-        self.vert_aov = self._calculate_vert_aov(cam_height=cam_pos[2], focal_length=focal_length)
 
     def get_trajectory(self):
         return self.trajectory
@@ -45,8 +46,7 @@ class SnakeStrategyStrict(Strategy):
 
         principal_axis_intersection_target_pos = self.trajectory[self.step % len(self.trajectory)]
         delta_yaw, delta_pitch = self._calculate_angle(cam_pos=self.cam_pos[:2], cam_height=self.cam_pos[2],
-                                                       cam_yaw=yaw, cam_pitch=pitch,
-                                                       init_pos=principal_axis_intersection,
+                                                       cam_pitch=pitch, init_pos=principal_axis_intersection,
                                                        target_pos=principal_axis_intersection_target_pos)
 
         logger.debug(f"Pitch: {pitch}+({delta_pitch}), Yaw: {yaw}+({delta_yaw})")
@@ -55,8 +55,7 @@ class SnakeStrategyStrict(Strategy):
         self.step += 1
         return delta_yaw, delta_pitch
 
-    def _calculate_angle(self, cam_pos: Point2D, cam_height: float,
-                         cam_yaw: float, cam_pitch: float,
+    def _calculate_angle(self, cam_pos: Point2D, cam_height: float, cam_pitch: float,
                          init_pos: Point2D, target_pos: Point2D):
         top_aov = cam_pitch - self.vert_aov
 
@@ -70,25 +69,26 @@ class SnakeStrategyStrict(Strategy):
         init_vec_angle = self._vector_angle(init_vec)
         target_vec_angle = self._vector_angle(target_vec)
 
-        delta_yaw = target_vec_angle - init_vec_angle
-        raw_pitch =np.degrees( math.asin(cam_height / norm(target_pos)) ) % 360.0
-        # tan_pitch = norm(target_vec) / norm(cam_height)
-        # raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
+        tan_pitch = norm(target_vec) / norm(cam_height)
+        raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
         pitch = 90 - raw_pitch
+
+        delta_yaw = target_vec_angle - init_vec_angle
         delta_pitch = pitch - top_aov
 
         logger.debug(f"raw_pitch: {raw_pitch}, corrected_pitch: {pitch}, delta_pitch: {delta_pitch}")
 
         return delta_yaw, delta_pitch
 
-    def _calculate_vert_aov(self, cam_height, focal_length):
-        AOV_v = 2 * math.degrees(math.atan(cam_height / (2 * focal_length)))
+    def _calculate_vert_aov(self, focal_length, height_of_image_sensor, width_of_image_sensor):
+        # self.__width_angle_of_view = 2 * math.atan(width_of_image_sensor / 2 / focal_length) * 180 / math.pi
+        height_angle_of_view = 2 * math.atan(height_of_image_sensor / 2 / focal_length) * 180 / math.pi
+        # AOV_v = 2 * math.degrees(math.atan(cam_height / (2 * focal_length)))
         # Determine angle of the most high-oriented ray
-        angle_of_ray = AOV_v / 2
-        magical_constant = 0.75 * 4 / 3
-        adj_angle_of_ray = angle_of_ray * magical_constant
-        logger.info(f"Vertical Angle Of View: {angle_of_ray}")
-        return adj_angle_of_ray
+        # angle_of_ray = AOV_v / 2
+        # adj_angle_of_ray = angle_of_ray * self.image_sensor_ratio
+        logger.info(f"Vertical Angle Of View: {height_angle_of_view / 2}")
+        return height_angle_of_view / 2
 
     def _vector_angle(self, v: np.array):
         """

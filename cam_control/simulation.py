@@ -21,15 +21,17 @@ class CamSimulation:
         self.fov_calculator = FOVCalculator()
         field_size = self.fov_calculator.get_field_size()
         field_loc = self.fov_calculator.get_field_loc()
+        image_sensor = self.fov_calculator.get_image_sensor()
         self.cam_pos = self.fov_calculator.get_cam_pos()
         self.focal_length=self.fov_calculator.get_focal_length()
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc)
         self.player_detector = PlayerDetector()
-        self.strategy = SnakeStrategyStrict(field_size, field_loc, self.cam_pos, self.focal_length)
+        self.strategy = SnakeStrategyStrict(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
 
         self.log_angles = True
         self.log_players = False
+        self.field_size = field_size
 
     def simulate(self, observed_objects_positions: np.ndarray):
         time = 0

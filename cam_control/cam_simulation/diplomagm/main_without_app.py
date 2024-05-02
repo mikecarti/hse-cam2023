@@ -91,3 +91,9 @@ class FOVCalculator:
         cam_info = json.load(f)
 
         return cam_info["list_of_panoramic_systems"][0]["list_of_cameras"][0]["lens"]["focal_length"]
+
+    def get_image_sensor(self):
+        f = open(self.path_to_camera)
+        cam_info = json.load(f)
+
+        return cam_info["list_of_panoramic_systems"][0]["list_of_cameras"][0]["image_sensor"]
