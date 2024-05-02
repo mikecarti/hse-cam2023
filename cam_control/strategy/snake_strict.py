@@ -22,9 +22,11 @@ class SnakeStrategyStrict(Strategy):
             [90, 80]
         ])
         self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
-        self.vert_aov = self._calculate_vert_aov(focal_length,  image_sensor["height"], image_sensor["width"])
+        self.curr_target_pos = self.trajectory[0]
 
-        self.furthest_corners = [0, 3]
+        self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
+
+        self.furthest_corners = [1, 2]
         self.debug = False
         self.cam_pos = cam_pos
 
@@ -34,6 +36,19 @@ class SnakeStrategyStrict(Strategy):
     def move(self, fov_corners: List[Point2D], yaw: float, pitch: float) \
             -> Tuple[float, float]:
         """
+        Calculates the delta movement of the camera angle: yaw and pitch
+        """
+        corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
+        principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
+
+        if self._close_enough(principal_axis_intersection, self.curr_target_pos):
+            self._change_target_pos()
+
+        return self._move(self.curr_target_pos, principal_axis_intersection, yaw, pitch)
+
+    def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
+            -> Tuple[float, float]:
+        """
         @param cam_pos: Tuple of size 3, xyz coordinates. Height matters.
         @param principal_axis_intersection: Tuple of size 2, intersection of principal axis of
         projection and the furthest line of the projection
@@ -41,10 +56,7 @@ class SnakeStrategyStrict(Strategy):
         @param pitch: current pitch of the camera.
         @return: Tuple[float, float]
         """
-        corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
-        principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
-
-        principal_axis_intersection_target_pos = self.trajectory[self.step % len(self.trajectory)]
+        principal_axis_intersection_target_pos = target_pos
         delta_yaw, delta_pitch = self._calculate_angle(cam_pos=self.cam_pos[:2], cam_height=self.cam_pos[2],
                                                        cam_pitch=pitch, init_pos=principal_axis_intersection,
                                                        target_pos=principal_axis_intersection_target_pos)
@@ -52,7 +64,6 @@ class SnakeStrategyStrict(Strategy):
         logger.debug(f"Pitch: {pitch}+({delta_pitch}), Yaw: {yaw}+({delta_yaw})")
         logger.debug(f"init_pos: {principal_axis_intersection}, target_pos: {principal_axis_intersection_target_pos}")
         sleep(0.5)
-        self.step += 1
         return delta_yaw, delta_pitch
 
     def _calculate_angle(self, cam_pos: Point2D, cam_height: float, cam_pitch: float,
@@ -96,3 +107,14 @@ class SnakeStrategyStrict(Strategy):
         @return: Angle in degrees
         """
         return np.degrees(np.arctan2(*v.T[::-1])) % 360.0
+
+    def _close_enough(self, pos_1: Point2D, pos_2: Point2D):
+        dist = norm(np.array(pos_1) - np.array(pos_2))
+        print(pos_1, pos_2, dist)
+        return dist < 0.1
+
+    def _change_target_pos(self):
+        self.step = (self.step + 1) % len(self.trajectory)
+        self.curr_target_pos = self.trajectory[self.step]
+        logger.info(f"Switched to target position: {self.curr_target_pos}")
+
