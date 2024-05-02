@@ -39,11 +39,11 @@ class FOVCalculator:
     def __init__(self):
         self.path_to_folders = "cam_control/cam_simulation/diplomagm/"
         self.path_to_field = self.path_to_folders + 'fields/hse_1_camera.json'
+        self.path_to_camera = self.path_to_folders + 'lists of panoramic systems/hse_1_camera.json'
         self.panoramic_systems = self._init_panoramic_system()
 
     def _init_panoramic_system(self, yaw=None, pitch=None) -> List[PanoramicSystem]:
-        field, list_of_panoramic_systems = initModel(self.path_to_field,
-                                                     self.path_to_folders + 'lists of panoramic systems/hse_1_camera.json')
+        field, list_of_panoramic_systems = initModel(self.path_to_field,self.path_to_camera)
         camera_systems = list_of_panoramic_systems.getListOfPanoramicSystems()
         if yaw is None or pitch is None:
             return camera_systems
@@ -82,3 +82,12 @@ class FOVCalculator:
     def get_rotation_coords(self):
         system = self.panoramic_systems[0]
         return system.getYaw(), system.getPitch()
+
+    def get_cam_pos(self):
+        return self.panoramic_systems[0].getCoordinates()
+
+    def get_focal_length(self):
+        f = open(self.path_to_camera)
+        cam_info = json.load(f)
+
+        return cam_info["list_of_panoramic_systems"][0]["list_of_cameras"][0]["lens"]["focal_length"]

@@ -1,6 +1,6 @@
 from typing import Tuple, Dict
 
-from utils import calc_corners
+from strategy.utils import calc_corners
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,31 +17,34 @@ class Plotter:
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
 
-
         self.legend = None
         self.lines = []
         self.dots = []
 
     def plot(self, fov_points, observed_objects_positions: np.ndarray,
-             camera_properties: Dict) -> None:
+             camera_properties: Dict, trajectory: np.ndarray) -> None:
         """
         Plot the field of view and the observed objects.
 
         :param fov_points: Field of view points.
         :param observed_objects_positions: Observed objects positions. Matrix of shape 2xn,
+        :param camera_properties: Yaw and Pitch
+        :param trajectory: Trajectory of the camera, 2xN
         where n is the number of observed objects
         """
-        yaw, pitch = camera_properties["yaw"], camera_properties["pitch"]
+        # yaw, pitch = camera_properties["yaw"], camera_properties["pitch"]
 
         # TODO: refactor ax
         self._clear_irrelevant()
         self.plot_fov(fov_points)
-        self.plot_agents(observed_objects_positions)
+        self.plot_points(observed_objects_positions, color='b')  # agents
+        self.plot_points(trajectory, color="r")  # trajectory
         # self.plot_legend(yaw, pitch)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.axis('scaled')
-
+        self.ax.set_xlim([-20, 150])
+        self.ax.set_ylim([-20, 150])
         plt.pause(0.05)
 
     def plot_fov(self, points, color="r"):
@@ -73,20 +76,19 @@ class Plotter:
         # Calculate other corners of the rectangle
         bottom_left, bottom_right, top_left, top_right = calc_corners(height, width, loc=self.field_loc)
 
-
         # Plot rectangle edges
         ax.plot([top_left[0], top_right[0]], [top_left[1], top_right[1]], c='g')
         ax.plot([top_right[0], bottom_right[0]], [top_right[1], bottom_right[1]], c='g')
         ax.plot([bottom_right[0], bottom_left[0]], [bottom_right[1], bottom_left[1]], c='g')
         ax.plot([bottom_left[0], top_left[0]], [bottom_left[1], top_left[1]], c='g')
 
-    def plot_agents(self, observed_objects_positions: np.ndarray):
+    def plot_points(self, observed_objects_positions: np.ndarray, color: str = "b"):
         ax = self.ax
         x_coords = observed_objects_positions[:, 0]
         y_coords = observed_objects_positions[:, 1]
 
         # Plot agents with customized line plot
-        ax.plot(x_coords, y_coords, marker='o', color='blue', linestyle='')  # Change marker style and color
+        ax.plot(x_coords, y_coords, marker='o', color=color, linestyle='')  # Change marker style and color
         # Here, linestyle='' means no connecting lines between markers
         pass
 
