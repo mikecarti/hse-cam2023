@@ -6,6 +6,7 @@ from time import sleep
 from math import sqrt, acos, atan, atan2, degrees
 import math
 from loguru import logger
+from queue import Queue
 
 Point2D = Tuple[float, float] | np.array
 Point3D = Tuple[float, float, float] | np.array
@@ -22,9 +23,10 @@ class SnakeStrategyStrict(Strategy):
             [90, 80]
         ])
         self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
-        self.curr_target_pos = self.trajectory[0]
-
+        self.step = -1
+        self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
+        self._change_target_pos(cam_pos[:2])
 
         self.furthest_corners = [1, 2]
         self.debug = False
@@ -44,7 +46,11 @@ class SnakeStrategyStrict(Strategy):
         if self._close_enough(principal_axis_intersection, self.curr_target_pos):
             self._change_target_pos()
 
-        return self._move(self.curr_target_pos, principal_axis_intersection, yaw, pitch)
+        intermediate_target_pos = self.gradual_movement.get()
+
+        delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
+        return delta_yaw, delta_pitch
+
 
     def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
@@ -63,7 +69,7 @@ class SnakeStrategyStrict(Strategy):
 
         logger.debug(f"Pitch: {pitch}+({delta_pitch}), Yaw: {yaw}+({delta_yaw})")
         logger.debug(f"init_pos: {principal_axis_intersection}, target_pos: {principal_axis_intersection_target_pos}")
-        sleep(0.5)
+        # sleep(0.5)
         return delta_yaw, delta_pitch
 
     def _calculate_angle(self, cam_pos: Point2D, cam_height: float, cam_pitch: float,
@@ -113,8 +119,18 @@ class SnakeStrategyStrict(Strategy):
         print(pos_1, pos_2, dist)
         return dist < 0.1
 
-    def _change_target_pos(self):
+    def _change_target_pos(self, prev_target_pos=None):
+        if prev_target_pos is None:
+            self.prev_target_pos = self.curr_target_pos
+        else:
+            self.prev_target_pos = prev_target_pos
+
         self.step = (self.step + 1) % len(self.trajectory)
         self.curr_target_pos = self.trajectory[self.step]
+        self.gradual_movement.empty()
+
+        linspace = np.linspace(self.prev_target_pos, self.curr_target_pos, 20)
+        for point in linspace:
+            self.gradual_movement.put(point)
         logger.info(f"Switched to target position: {self.curr_target_pos}")
 

@@ -8,7 +8,7 @@ import numpy as np
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float]):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray):
         self.fig, self.ax = plt.subplots()
 
         self.field_size = field_size  # (width, height)
@@ -17,12 +17,14 @@ class Plotter:
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
 
+        self.plot_points(trajectory, color="r")  # trajectory
+
         self.legend = None
         self.lines = []
         self.dots = []
 
     def plot(self, fov_points, observed_objects_positions: np.ndarray,
-             camera_properties: Dict, trajectory: np.ndarray) -> None:
+             camera_properties: Dict) -> None:
         """
         Plot the field of view and the observed objects.
 
@@ -38,7 +40,6 @@ class Plotter:
         self._clear_irrelevant()
         self.plot_fov(fov_points)
         self.plot_points(observed_objects_positions, color='b')  # agents
-        self.plot_points(trajectory, color="r")  # trajectory
         # self.plot_legend(yaw, pitch)
         plt.xlabel('X')
         plt.ylabel('Y')
@@ -90,7 +91,6 @@ class Plotter:
         # Plot agents with customized line plot
         ax.plot(x_coords, y_coords, marker='o', color=color, linestyle='')  # Change marker style and color
         # Here, linestyle='' means no connecting lines between markers
-        pass
 
     def plot_legend(self, yaw, pitch):
         ax = self.ax

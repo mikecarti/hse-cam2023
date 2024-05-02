@@ -25,9 +25,9 @@ class CamSimulation:
         self.cam_pos = self.fov_calculator.get_cam_pos()
         self.focal_length=self.fov_calculator.get_focal_length()
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
-        self.plotter = Plotter(field_size=field_size, field_loc=field_loc)
-        self.player_detector = PlayerDetector()
         self.strategy = SnakeStrategyStrict(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
+        self.plotter = Plotter(field_size=field_size, field_loc=field_loc, trajectory=self.strategy.get_trajectory())
+        self.player_detector = PlayerDetector()
 
         self.log_angles = True
         self.log_players = False
@@ -49,9 +49,10 @@ class CamSimulation:
             delta_yaw, delta_pitch = self.strategy.move(fov_points, yaw, pitch)
 
             # observed_objects_positions = self.player_sim.get_positions(time)
-            observed_objects_positions = np.array([[25, 25], [45, 25], [65, 25], [85, 25]])
+            # observed_objects_positions = np.array([[25, 25], [45, 25], [65, 25], [85, 25]])
+            observed_objects_positions = np.array([[0,0]])
             players_inside_fov = self.player_detector.which_players_inside_fov(observed_objects_positions, fov_points)
-            self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties, trajectory=self.strategy.get_trajectory())
+            self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties)
 
             if self.log_angles:
                 logger.info(f"{camera_properties}")
