@@ -9,6 +9,7 @@ import numpy as np
 class Plotter:
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray):
+        self.point_plot = None
         self.fig, self.ax = plt.subplots()
 
         self.field_size = field_size  # (width, height)
@@ -17,7 +18,7 @@ class Plotter:
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
 
-        self.plot_points(trajectory, color="r")  # trajectory
+        self.plot_points(trajectory, color="r", leave_forever=True)  # trajectory
 
         self.legend = None
         self.lines = []
@@ -83,14 +84,22 @@ class Plotter:
         ax.plot([bottom_right[0], bottom_left[0]], [bottom_right[1], bottom_left[1]], c='g')
         ax.plot([bottom_left[0], top_left[0]], [bottom_left[1], top_left[1]], c='g')
 
-    def plot_points(self, observed_objects_positions: np.ndarray, color: str = "b"):
+    def plot_points(self, observed_objects_positions: np.ndarray, color: str = "b", leave_forever=False):
         ax = self.ax
+
+        # Clear previous points if they exist
+        if self.point_plot:
+            for point in self.point_plot:
+                point.remove()
+
         x_coords = observed_objects_positions[:, 0]
         y_coords = observed_objects_positions[:, 1]
 
         # Plot agents with customized line plot
-        ax.plot(x_coords, y_coords, marker='o', color=color, linestyle='')  # Change marker style and color
         # Here, linestyle='' means no connecting lines between markers
+        point_plot = ax.plot(x_coords, y_coords, marker='o', color=color, linestyle='')
+        if not leave_forever:
+            self.point_plot = point_plot
 
     def plot_legend(self, yaw, pitch):
         ax = self.ax

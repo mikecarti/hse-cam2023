@@ -7,13 +7,12 @@ sys.path.append(cam_dir)
 cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
-import numpy as np
 from player_detect import PlayerDetector
-from strategy.snake_simple import SnakeStrategySimple
 from strategy.snake_strict import SnakeStrategyStrict
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger
+from mock_player_sim import MockPlayerSim
 
 
 class CamSimulation:
@@ -28,16 +27,16 @@ class CamSimulation:
         self.strategy = SnakeStrategyStrict(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc, trajectory=self.strategy.get_trajectory())
         self.player_detector = PlayerDetector()
+        self.player_sim = MockPlayerSim(field_size, field_loc)
 
         self.log_angles = True
-        self.log_players = False
+        self.log_players = True
         self.field_size = field_size
 
-    def simulate(self, observed_objects_positions: np.ndarray):
+    def simulate(self):
         time = 0
-        delta_yaw, delta_pitch = 0,0
+        delta_yaw, delta_pitch = 0, 0
         yaw, pitch = self.fov_calculator.get_rotation_coords()
-        # camera_properties = {"yaw": yaw, "pitch": pitch}
 
         while True:
             yaw += delta_yaw
@@ -45,12 +44,9 @@ class CamSimulation:
             camera_properties = {"yaw": yaw % 360.0, "pitch": pitch % 360.0}
 
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            # cam_pos: Tuple, fov_corners: List[Point2D], yaw: float, pitch: float
             delta_yaw, delta_pitch = self.strategy.move(fov_points, yaw, pitch)
 
-            # observed_objects_positions = self.player_sim.get_positions(time)
-            # observed_objects_positions = np.array([[25, 25], [45, 25], [65, 25], [85, 25]])
-            observed_objects_positions = np.array([[0,0]])
+            observed_objects_positions = self.player_sim.get_positions(time)
             players_inside_fov = self.player_detector.which_players_inside_fov(observed_objects_positions, fov_points)
             self.plotter.plot(fov_points, observed_objects_positions, camera_properties=camera_properties)
 
@@ -64,4 +60,4 @@ class CamSimulation:
 
 if __name__ == '__main__':
     cam_simulation = CamSimulation()
-    cam_simulation.simulate([])
+    cam_simulation.simulate()
