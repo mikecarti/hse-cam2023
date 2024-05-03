@@ -61,6 +61,8 @@ class SnakeStrategyStrict(Strategy):
         ])
         self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
         self.step = -1
+        self.steps_between_targets = 20
+
         self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
         self._change_target_pos(cam_pos[:2])
@@ -223,7 +225,7 @@ class SnakeStrategyStrict(Strategy):
         self.curr_target_pos = self.trajectory[self.step]
         self.gradual_movement.empty()
 
-        linspace = np.linspace(self.prev_target_pos, self.curr_target_pos, 20)
+        linspace = np.linspace(self.prev_target_pos, self.curr_target_pos, self.steps_between_targets)
         for point in linspace:
             self.gradual_movement.put(point)
         logger.info(f"Switched to target position: {self.curr_target_pos}")
