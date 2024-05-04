@@ -26,9 +26,12 @@ fields of view and sharpness.
 
 import sys
 import math
+from typing import List
+
 import numpy as np
 import matplotlib.pyplot as plt
 from basis import Coordinates, Axis, Size, Tetragon
+from cam_control.cam_simulation.diplomagm.camera import Camera
 from rotation_matrix import getRotationMatrix
 
 
@@ -390,7 +393,7 @@ class PanoramicSystem:
         """
         return self.__coordinates.getCoordinatesZ()
 
-    def getListOfCameras(self):
+    def getListOfCameras(self) -> List[Camera]:
         """Get list of cameras that form the panoramic system with their parameters.
 
         :return: list of cameras

@@ -41,6 +41,7 @@ class FOVCalculator:
         self.path_to_field = self.path_to_folders + 'fields/hse_1_camera.json'
         self.path_to_camera = self.path_to_folders + 'lists of panoramic systems/hse_1_camera.json'
         self.panoramic_systems = self._init_panoramic_system()
+        self.zoom_coef = 1
 
     def _init_panoramic_system(self, yaw=None, pitch=None) -> List[PanoramicSystem]:
         field, list_of_panoramic_systems = initModel(self.path_to_field,self.path_to_camera)
@@ -55,11 +56,23 @@ class FOVCalculator:
         return [panoramic_system]
 
     def get_points_of_fov(self, camera_properties=None):
+        panoramic_system = self.panoramic_systems[0]
+
         if camera_properties is not None:
             yaw = camera_properties.get('yaw')
             pitch = camera_properties.get('pitch')
-            self.panoramic_systems = self._init_panoramic_system(yaw=yaw, pitch=pitch)
-        return np.array(self.panoramic_systems[0].calculatePanoramicSystemFOV())
+            zoom_coef = camera_properties.get('zoom', 1)
+            panoramic_system.changeProperties(id=0, pitch=pitch, yaw=yaw, roll=1e-5)
+            cam = panoramic_system.getListOfCameras()[0]
+            focal_length = cam.getLensFocalLength()
+
+            cam.setLensFocalLength(focal_length / zoom_coef)
+
+        return np.array(panoramic_system.calculatePanoramicSystemFOV())
+
+    def change_zoom(self, zoom_coef: float):
+        self.zoom_coef = zoom_coef
+        new_focal_length = self.get_focal_length() / zoom_coef
 
     def get_field_size(self) -> Tuple[float, float]:
         """
@@ -97,3 +110,5 @@ class FOVCalculator:
         cam_info = json.load(f)
 
         return cam_info["list_of_panoramic_systems"][0]["list_of_cameras"][0]["image_sensor"]
+
+
