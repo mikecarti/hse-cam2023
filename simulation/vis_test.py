@@ -21,12 +21,23 @@ scatters = [ax.scatter([], [], color=('red' if i < 11 else 'blue')) for i in ran
 ball_scatter = ax.scatter([], [], color='black')
 
 def animate(frame_number: int):
-        for i, scatter in enumerate(scatters, start=1):
-        player = df[df['Frame'] == frame_number][['Player{}_x'.format(i), 'Player{}_y'.format(i)]]
-        scatter.set_offsets(player.values)
+    ax.clear()
+    frame_data = df[df['Frame'] == frame_number]
 
-    ball = df[df['Frame'] == frame_number][['Ball_x', 'Ball_y']]
-    ball_scatter.set_offsets(ball.values)
+    team1_data = frame_data[frame_data['Team'] == 'Team A']
+    ax.scatter(team1_data['X'], team1_data['Y'], color='blue', label='Team 1')
+
+    team2_data = frame_data[frame_data['Team'] == 'Team B']
+    ax.scatter(team2_data['X'], team2_data['Y'], color='red', label='Team 2')
+
+    ax.legend()
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_title(f'Player positions in frame {frame_number}')
+
+    ax.set_xlim([0, grid_width])
+    ax.set_ylim([0, grid_height])   
 
    
 ani = animation.FuncAnimation(fig, animate, frames=range(df['Frame'].min(), df['Frame'].max() + 1), interval=INTERVAL)
