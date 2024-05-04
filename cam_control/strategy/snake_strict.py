@@ -11,9 +11,9 @@ Point2D = Tuple[float, float] | np.array
 Point3D = Tuple[float, float, float] | np.array
 
 
-class SnakeStrategyStrict(Strategy):
+class TrajectoryStrategy(Strategy):
     """
-    A strategy class for controlling the movement of a camera in a snake-like pattern.
+    A strategy class for controlling the movement of a camera in any pattern.
 
     Args:
         field_size (Tuple[float, float]): Size of the field.
@@ -49,16 +49,13 @@ class SnakeStrategyStrict(Strategy):
         _change_target_pos(prev_target_pos: Point2D = None) -> None:
             Change the target position for the camera movement.
     """
+    SNAKE_TRAJECTORY = np.array([[60, 0], [90, 0], [90, 20], [60, 20], [60, 40],
+                                 [90, 40], [90, 60], [60, 60], [60, 80], [90, 80]])
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Point2D, cam_pos: Point3D,
-                 focal_length: float, image_sensor: Dict):
+                 focal_length: float, image_sensor: Dict, trajectory: np.ndarray = SNAKE_TRAJECTORY):
         super().__init__(field_size=field_size, field_loc=field_loc)
-        self.trajectory = np.array([
-            [60, 0],
-            [90, 0], [90, 20], [60, 20], [60, 40],
-            [90, 40], [90, 60], [60, 60], [60, 80],
-            [90, 80]
-        ])
+        self.trajectory = trajectory
         self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
         self.step = -1
         self.steps_between_targets = 20
@@ -103,7 +100,6 @@ class SnakeStrategyStrict(Strategy):
 
         delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
         return delta_yaw, delta_pitch
-
 
     def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
@@ -167,7 +163,8 @@ class SnakeStrategyStrict(Strategy):
 
         return delta_yaw, delta_pitch
 
-    def _calculate_vert_aov(self, focal_length: float, height_of_image_sensor: float, width_of_image_sensor: float) -> float:
+    def _calculate_vert_aov(self, focal_length: float, height_of_image_sensor: float,
+                            width_of_image_sensor: float) -> float:
         """
         Calculate the vertical angle of view.
 
