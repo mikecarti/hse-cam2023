@@ -191,12 +191,12 @@ class SoccerMatch:
                                  *self.ball.current_position])
         df = pd.DataFrame(data, columns=['Period', 'Frame', 'Time [s]', 'Team', 'Player', 'X', 'Y', 'Ball_x', 'Ball_y'])
 
-        # df = df.pivot(index=['Period', 'Frame', 'Time [s]', 'Ball_x', 'Ball_y'], columns=['Team', 'Player'])
-        # df.columns = [f'Player{player_id+1}_{coord}' for player_id in range(22) for coord in ['x', 'y']]
-        # df.reset_index(inplace=True)
-        # columns = list(df.columns)
-        # columns_ball_reordered = [col for col in columns if col not in ['Ball_x', 'Ball_y']] + ['Ball_x', 'Ball_y']
-        # df = df[columns_ball_reordered]
+        df = df.pivot(index=['Period', 'Frame', 'Time [s]', 'Ball_x', 'Ball_y'], columns=['Team', 'Player'])
+        df.columns = [f'Player{player_id+1}_{coord}' for player_id in range(22) for coord in ['x', 'y']]
+        df.reset_index(inplace=True)
+        columns = list(df.columns)
+        columns_ball_reordered = [col for col in columns if col not in ['Ball_x', 'Ball_y']] + ['Ball_x', 'Ball_y']
+        df = df[columns_ball_reordered]
         return df
 
 

@@ -8,7 +8,7 @@ cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
 from player_detect import PlayerDetector
-from strategy.snake_strict import TrajectoryStrategy
+from strategy.trajectory import TrajectoryStrategy
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger

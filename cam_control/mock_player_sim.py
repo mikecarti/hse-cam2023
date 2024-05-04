@@ -14,4 +14,5 @@ class MockPlayerSim:
         for i in range(n):
             positions[i][0] = np.random.randint(self.min_x, self.max_x)
             positions[i][1] = np.random.randint(self.min_y, self.max_y)
+        # np.ndarray([[1,1], [2,3], [5,6],... ,...])
         return positions

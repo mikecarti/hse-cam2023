@@ -53,15 +53,3 @@ class PlayerDetector:
         - Positive, negative, or zero value based on the position of p2 relative to the line through p0 and p1.
         """
         return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1])
-
-        # Example usage:
-
-    # fov_points = [(0, 0), (2, 0), (2, 2), (0, 2)]  # Example tetragon vertices
-    # player_position = (1, 1)  # Example player position
-    #
-    # # # Discarding the z-coordinate as it's always 0
-    # # fov_points = [(x, y) for x, y, _ in fov_points]
-    #
-    # # Check if player position is inside the tetragon
-    # inside = is_point_inside_tetragon(player_position, fov_points)
-    # print("Is player position inside the tetragon?", inside)
