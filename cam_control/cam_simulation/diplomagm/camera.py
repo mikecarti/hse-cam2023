@@ -225,16 +225,28 @@ class Camera:
         self.__vector_x = np.dot(np.array([1, 0, 0]), self.__rotationMatrix)
         self.__vector_y = np.dot(np.array([0, 1, 0]), self.__rotationMatrix)
         self.__vector_z = np.dot(np.array([0, 0, 1]), self.__rotationMatrix)
-        self.__lens = Lens(focal_length, f_number, focus_distance,
-                           diameter_of_lens, lenght_of_lens)
-        self.__imageSensor = ImageSensor(width_of_image_sensor,
-                                         height_of_image_sensor, pixel_size)
+        self.__diameter_of_lens = diameter_of_lens
+        self.__lenght_of_lens = lenght_of_lens
+        self.__f_number = f_number
+        self.__focus_distance = focus_distance
+        self.__height_of_image_sensor = height_of_image_sensor
+        self.__lenght_of_lens = lenght_of_lens
+        self.__width_of_image_sensor = width_of_image_sensor
+        self.__pixel_size = pixel_size
+
+        self._initialize_lens(focal_length)
+
+    def _initialize_lens(self, focal_length):
+        self.__lens = Lens(focal_length, self.__f_number, self.__focus_distance,
+                           self.__diameter_of_lens, self.__lenght_of_lens)
+        self.__imageSensor = ImageSensor(self.__width_of_image_sensor,
+                                         self.__height_of_image_sensor, self.__pixel_size)
         self.__width_angle_of_view = 2 * math.atan(
-            width_of_image_sensor / 2 / focal_length) * 180 / math.pi
+            self.__width_of_image_sensor / 2 / focal_length) * 180 / math.pi
         self.__height_angle_of_view = 2 * math.atan(
-            height_of_image_sensor / 2 / focal_length) * 180 / math.pi
-        self.__hyperfocal_distance = focal_length**2 / f_number / (
-            math.sqrt(2) * pixel_size / 1000)
+            self.__height_of_image_sensor / 2 / focal_length) * 180 / math.pi
+        self.__hyperfocal_distance = focal_length ** 2 / self.__f_number / (
+                math.sqrt(2) * self.__pixel_size / 1000)
 
     def getID(self):
         """_summary_
@@ -366,6 +378,15 @@ class Camera:
         """
         return self.__lens.getFocalLength()
 
+    def setLensFocalLength(self, focal_length: float):
+        """_summary_
+
+        :return: _description_
+        :rtype: _type_
+        """
+        self.__lens.__focal_length = focal_length
+        self._initialize_lens(focal_length)
+
     def getLensSize(self):
         """_summary_
 
@@ -389,6 +410,7 @@ class Camera:
         :rtype: _type_
         """
         return self.__lens.getLength()
+
 
     def getImageSensorSize(self):
         """_summary_

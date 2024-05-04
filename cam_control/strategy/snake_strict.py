@@ -99,7 +99,7 @@ class SnakeStrategyStrict(Strategy):
         if self._close_enough(principal_axis_intersection, self.curr_target_pos):
             self._change_target_pos()
 
-        intermediate_target_pos = self.gradual_movement.get()
+        intermediate_target_pos = self.gradual_movement.get(block=True)
 
         delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
         return delta_yaw, delta_pitch

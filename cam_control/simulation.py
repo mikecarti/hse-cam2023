@@ -36,12 +36,13 @@ class CamSimulation:
     def simulate(self):
         time = 0
         delta_yaw, delta_pitch = 0, 0
+        zoom = 1
         yaw, pitch = self.fov_calculator.get_rotation_coords()
 
         while True:
             yaw += delta_yaw
             pitch += delta_pitch
-            camera_properties = {"yaw": yaw % 360.0, "pitch": pitch % 360.0}
+            camera_properties = {"yaw": yaw % 360.0, "pitch": pitch % 360.0, "zoom": zoom}
 
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
             delta_yaw, delta_pitch = self.strategy.move(fov_points, yaw, pitch)
