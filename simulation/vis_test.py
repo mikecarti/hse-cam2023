@@ -21,14 +21,7 @@ scatters = [ax.scatter([], [], color=('red' if i < 11 else 'blue')) for i in ran
 ball_scatter = ax.scatter([], [], color='black')
 
 def animate(frame_number: int):
-    """
-    This function animates the scatter plot of player positions for each frame.
-
-    :param frame_number: The frame number to be animated.
-    :type frame_number: int
-    """
-
-    for i, scatter in enumerate(scatters, start=1):
+        for i, scatter in enumerate(scatters, start=1):
         player = df[df['Frame'] == frame_number][['Player{}_x'.format(i), 'Player{}_y'.format(i)]]
         scatter.set_offsets(player.values)
 
@@ -37,27 +30,6 @@ def animate(frame_number: int):
 
    
 ani = animation.FuncAnimation(fig, animate, frames=range(df['Frame'].min(), df['Frame'].max() + 1), interval=INTERVAL)
-"""
-FuncAnimation creates an animation by repeatedly calling a function animate.
-
-:param fig: The figure object that is used to get draw events.
-:type fig: Figure
-:param animate: The function to call at each frame.
-:type animate: callable
-:param frames: Source of data to pass function and each frame of the animation
-:type frames: int
-:param interval: Delay between frames in milliseconds.
-:type interval: int
-"""
-
 ani.save('soccer_match_simulation.mp4', writer='ffmpeg')
-"""
-Saves a animation to a file.
-
-:param filename: The output filename.
-:type filename: str
-:param writer: The writer to use. 
-:type writer: str
-"""
-
 plt.close(fig)
+
