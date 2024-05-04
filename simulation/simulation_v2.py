@@ -1,8 +1,6 @@
-import random
 import pandas as pd
 import numpy as np
 import yaml
-import random
 from typing import Tuple, List
 
 with open("simulation_config.yaml", "r") as config_file:
@@ -77,7 +75,7 @@ class Player(Entity):
         np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
 
 
-class Goalkeeper(Player):
+class GoalKeeper(Player):
     def __init__(self, team_name, team, player_id, default_position, grid, zone):
         super().__init__(team_name, team, player_id, default_position, grid)
         self.zone = zone
@@ -157,9 +155,9 @@ class Team:
                     self.players.append(OffencePlayer(name, self, i, pos, grid, [5, 35]))
             if i == 10:
                 if self.name == 'Team A':
-                    self.players.append(Goalkeeper(name, self, i, pos, grid, [[0, 5], [45, 55]]))
+                    self.players.append(GoalKeeper(name, self, i, pos, grid, [[0, 5], [45, 55]]))
                 else:
-                    self.players.append(Goalkeeper(name, self, i, pos, grid, [[95, 100], [45, 55]]))
+                    self.players.append(GoalKeeper(name, self, i, pos, grid, [[95, 100], [45, 55]]))
 
         self.mode = ('offensive' if any(player.has_ball_control for player in self.players) else 'defensive')
 
