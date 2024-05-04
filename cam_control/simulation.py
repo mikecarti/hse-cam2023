@@ -8,7 +8,7 @@ cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
 from player_detect import PlayerDetector
-from strategy.snake_strict import SnakeStrategyStrict
+from strategy.snake_strict import TrajectoryStrategy
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger
@@ -24,7 +24,7 @@ class CamSimulation:
         self.cam_pos = self.fov_calculator.get_cam_pos()
         self.focal_length=self.fov_calculator.get_focal_length()
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
-        self.strategy = SnakeStrategyStrict(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
+        self.strategy = TrajectoryStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc, trajectory=self.strategy.get_trajectory())
         self.player_detector = PlayerDetector()
         self.player_sim = MockPlayerSim(field_size, field_loc)
