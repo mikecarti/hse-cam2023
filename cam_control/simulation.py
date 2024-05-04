@@ -1,6 +1,8 @@
 import os
 import sys
 
+from cam_control.strategy.trajectory import TrajectoryStrategy
+
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
 sys.path.append(cam_dir)
@@ -8,7 +10,7 @@ cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
 from player_detect import PlayerDetector
-from strategy.trajectory import TrajectoryStrategy
+from strategy.strategy import CameraMovementStrategy
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger
