@@ -79,7 +79,7 @@ class CameraMovementStrategy(Strategy):
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
-        raise
+        pass
 
     def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
