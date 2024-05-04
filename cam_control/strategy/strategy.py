@@ -56,7 +56,7 @@ class CameraMovementStrategy(Strategy):
                  focal_length: float, image_sensor: Dict):
         super().__init__(field_size=field_size, field_loc=field_loc)
         self.step = -1
-        self.steps_between_targets = 20
+        self.n_intermediate_steps = 20
 
         self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
@@ -185,3 +185,11 @@ class CameraMovementStrategy(Strategy):
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
         return dist < 0.1
+
+    def _plan_gradual_movement(self, curr_pos: Point2D, target_pos: Point2D) -> Queue:
+        self.gradual_movement.empty()
+
+        lin_space = np.linspace(curr_pos, target_pos, self.n_intermediate_steps)
+        for point in lin_space:
+            self.gradual_movement.put(point)
+        return self.gradual_movement

@@ -22,7 +22,7 @@ class FollowerStrategy(CameraMovementStrategy):
         self.current_pos = [0, 0]
         self.target_pos = [0, 0]
 
-    def move(self, fov_corners: List[Point2D], yaw: float, pitch: float) \
+    def move(self, fov_corners: List[Point2D], yaw: float, pitch: float, to: Point2D) \
             -> Tuple[float, float]:
         """
         Calculates the delta movement of the camera angle: yaw and pitch.
@@ -41,14 +41,14 @@ class FollowerStrategy(CameraMovementStrategy):
         if self._close_enough(principal_axis_intersection, self.target_pos):
             logger.warning(f"Follower strategy reached destination: {self.target_pos}")
 
-        intermediate_target_pos = self.gradual_movement.get(block=True)
+        if self.gradual_movement.empty():
+        self._plan_gradual_movement(principal_axis_intersection, )
+            intermediate_target_pos = self.gradual_movement.get(block=True)
         self.current_pos = intermediate_target_pos  # or maybe = principal_axis_intersection
 
         delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
         return delta_yaw, delta_pitch
 
-    def set_target(self, point: Point2D):
-        self.target_pos = point
 
     def is_target_reached(self):
         return self._close_enough(self.current_pos, self.target_pos)

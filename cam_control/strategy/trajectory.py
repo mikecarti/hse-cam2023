@@ -2,6 +2,7 @@ from cam_control.strategy.strategy import CameraMovementStrategy
 import numpy as np
 from typing import Tuple, List, Dict
 from loguru import logger
+from queue import Queue
 
 Point2D = Tuple[float, float] | np.array
 Point3D = Tuple[float, float, float] | np.array
@@ -69,7 +70,6 @@ class TrajectoryStrategy(CameraMovementStrategy):
         self.curr_target_pos = self.trajectory[self.step]
         self.gradual_movement.empty()
 
-        linspace = np.linspace(self.prev_target_pos, self.curr_target_pos, self.steps_between_targets)
-        for point in linspace:
-            self.gradual_movement.put(point)
+        self._plan_gradual_movement(self.prev_target_pos, self.curr_target_pos)
         logger.info(f"Switched to target position: {self.curr_target_pos}")
+

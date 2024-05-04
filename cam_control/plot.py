@@ -8,7 +8,7 @@ import numpy as np
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray=None):
         self.point_plot = None
         self.fig, self.ax = plt.subplots()
 
@@ -17,8 +17,8 @@ class Plotter:
         self.plot_field()
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
-
-        self.plot_points(trajectory, color="r", leave_forever=True)  # trajectory
+        if trajectory:
+            self.plot_points(trajectory, color="r", leave_forever=True)  # trajectory
 
         self.legend = None
         self.lines = []

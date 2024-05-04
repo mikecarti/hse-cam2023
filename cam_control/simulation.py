@@ -1,6 +1,7 @@
 import os
 import sys
 
+from cam_control.strategy.follower import FollowerStrategy
 from cam_control.strategy.trajectory import TrajectoryStrategy
 
 current_dir = os.getcwd()
@@ -26,8 +27,8 @@ class CamSimulation:
         self.cam_pos = self.fov_calculator.get_cam_pos()
         self.focal_length=self.fov_calculator.get_focal_length()
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
-        self.strategy = TrajectoryStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
-        self.plotter = Plotter(field_size=field_size, field_loc=field_loc, trajectory=self.strategy.get_trajectory())
+        self.strategy = FollowerStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
+        self.plotter = Plotter(field_size=field_size, field_loc=field_loc)
         self.player_detector = PlayerDetector()
         self.player_sim = MockPlayerSim(field_size, field_loc)
 
@@ -47,7 +48,7 @@ class CamSimulation:
             camera_properties = {"yaw": yaw % 360.0, "pitch": pitch % 360.0, "zoom": zoom}
 
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            delta_yaw, delta_pitch = self.strategy.move(fov_points, yaw, pitch)
+            delta_yaw, delta_pitch = self.strategy.move(fov_points, yaw, pitch, to=[20,20])
 
             observed_objects_positions = self.player_sim.get_positions(time)
             players_inside_fov = self.player_detector.which_players_inside_fov(observed_objects_positions, fov_points)
