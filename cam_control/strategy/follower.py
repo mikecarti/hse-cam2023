@@ -2,6 +2,7 @@ from typing import Tuple, List, Dict
 import numpy as np
 from loguru import logger
 from queue import Queue
+from numpy.linalg import norm
 
 from cam_control.data_type import Point2D, Point3D
 from cam_control.strategy.strategy import CameraMovementStrategy
@@ -35,6 +36,7 @@ class FollowerStrategy(CameraMovementStrategy):
 
         if self._close_enough(principal_axis_intersection, self.target_pos):
             logger.warning(f"Follower strategy reached destination: {self.target_pos}")
+            return 0, 0
 
         intermediate_target_pos = self._get_next_intermediate_target(principal_axis_intersection, self.target_pos)
         # or maybe self.current_pos = principal_axis_intersection
@@ -49,7 +51,8 @@ class FollowerStrategy(CameraMovementStrategy):
     def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
 
-        lin_space = np.linspace(cur_pos, target_pos, self.n_intermediate_steps)
+        n_steps = int(norm(cur_pos-target_pos) / self.speed_factor)
+        lin_space = np.linspace(cur_pos, target_pos, n_steps)
         for point in lin_space:
             self.gradual_movement.put(point)
         return self.gradual_movement
