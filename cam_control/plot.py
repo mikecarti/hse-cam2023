@@ -9,7 +9,8 @@ import numpy as np
 class Plotter:
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray = None):
-        self.point_plot = None
+        self.vis_point_plot = None
+        self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
 
         self.field_size = field_size  # (width, height)
@@ -90,15 +91,21 @@ class Plotter:
         visited_objects_positions = observed_objects_positions[visited_objects == 1]
         unvisited_objects_positions = observed_objects_positions[visited_objects == 0]
         self.plot_points(unvisited_objects_positions, color="b")
-        self.plot_points(visited_objects_positions, color="y")
+        self.plot_points(visited_objects_positions, color="black", visited=True)
 
-    def plot_points(self, observed_objects_positions: np.ndarray, color: str = "b", leave_forever=False):
+    def plot_points(self, observed_objects_positions: np.ndarray, color: str = "b", leave_forever=False,
+                    visited=False):
         ax = self.ax
 
-        # Clear previous points if they exist
-        if self.point_plot:
-            for point in self.point_plot:
-                point.remove()
+        if visited:
+            # Clear previous points if they exist
+            if self.vis_point_plot:
+                for point in self.vis_point_plot:
+                    point.remove()
+        else:
+            if self.unvis_point_plot:
+                for point in self.unvis_point_plot:
+                    point.remove()
 
         x_coords = observed_objects_positions[:, 0]
         y_coords = observed_objects_positions[:, 1]
@@ -106,8 +113,12 @@ class Plotter:
         # Plot agents with customized line plot
         # Here, linestyle='' means no connecting lines between markers
         point_plot = ax.plot(x_coords, y_coords, marker='o', color=color, linestyle='')
+
         if not leave_forever:
-            self.point_plot = point_plot
+            if visited:
+                self.vis_point_plot = point_plot
+            else:
+                self.unvis_point_plot = point_plot
 
     def plot_legend(self, yaw, pitch):
         ax = self.ax
