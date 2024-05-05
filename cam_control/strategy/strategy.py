@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict, Union
+from typing import Tuple, List, Dict
 import numpy as np
 from numpy.linalg import norm
 from strategy.core import Strategy
@@ -6,12 +6,14 @@ from math import atan
 import math
 from loguru import logger
 from queue import Queue
+from abc import ABC, abstractmethod
+
 
 Point2D = Tuple[float, float] | np.array
 Point3D = Tuple[float, float, float] | np.array
 
 
-class TrajectoryStrategy(Strategy):
+class CameraMovementStrategy(Strategy):
     """
     A strategy class for controlling the movement of a camera in any pattern.
 
@@ -49,34 +51,22 @@ class TrajectoryStrategy(Strategy):
         _change_target_pos(prev_target_pos: Point2D = None) -> None:
             Change the target position for the camera movement.
     """
-    SNAKE_TRAJECTORY = np.array([[60, 0], [90, 0], [90, 20], [60, 20], [60, 40],
-                                 [90, 40], [90, 60], [60, 60], [60, 80], [90, 80]])
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Point2D, cam_pos: Point3D,
-                 focal_length: float, image_sensor: Dict, trajectory: np.ndarray = SNAKE_TRAJECTORY):
+                 focal_length: float, image_sensor: Dict):
         super().__init__(field_size=field_size, field_loc=field_loc)
-        self.trajectory = trajectory
-        self.trajectory = np.concatenate([self.trajectory, self.trajectory[::-1]])
         self.step = -1
-        self.steps_between_targets = 20
+        self.n_intermediate_steps = 20
+        self.speed_factor = 1.5
 
         self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
-        self._change_target_pos(cam_pos[:2])
 
         self.furthest_corners = [1, 2]
         self.debug = False
         self.cam_pos = cam_pos
 
-    def get_trajectory(self) -> np.array:
-        """
-        Get the trajectory of the camera movement.
-
-        Returns:
-            np.array: Trajectory of the camera movement.
-        """
-        return self.trajectory
-
+    @abstractmethod
     def move(self, fov_corners: List[Point2D], yaw: float, pitch: float) \
             -> Tuple[float, float]:
         """
@@ -90,18 +80,9 @@ class TrajectoryStrategy(Strategy):
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
-        corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
-        principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
+        pass
 
-        if self._close_enough(principal_axis_intersection, self.curr_target_pos):
-            self._change_target_pos()
-
-        intermediate_target_pos = self.gradual_movement.get(block=True)
-
-        delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
-        return delta_yaw, delta_pitch
-
-    def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
+    def _move(self, principal_axis_intersection: Point2D, target_pos: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
         """
         Move the camera to the target position.
@@ -204,25 +185,15 @@ class TrajectoryStrategy(Strategy):
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        return dist < 0.1
+        eps = 0.1
+        return dist < eps
 
-    def _change_target_pos(self, prev_target_pos: Point2D = None) -> None:
-        """
-        Change the target position for the camera movement.
-
-        Args:
-            prev_target_pos (Point2D, optional): Previous target position. Defaults to None.
-        """
-        if prev_target_pos is None:
-            self.prev_target_pos = self.curr_target_pos
-        else:
-            self.prev_target_pos = prev_target_pos
-
-        self.step = (self.step + 1) % len(self.trajectory)
-        self.curr_target_pos = self.trajectory[self.step]
+    def _plan_gradual_movement(self, curr_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
 
-        linspace = np.linspace(self.prev_target_pos, self.curr_target_pos, self.steps_between_targets)
-        for point in linspace:
+        n_steps = int(norm(curr_pos, target_pos))
+        print(n_steps)
+        lin_space = np.linspace(curr_pos, target_pos, n_steps)
+        for point in lin_space:
             self.gradual_movement.put(point)
-        logger.info(f"Switched to target position: {self.curr_target_pos}")
+        return self.gradual_movement
