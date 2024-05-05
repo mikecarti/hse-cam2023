@@ -13,8 +13,6 @@ grid_width = sim_config["width"]
 sim_length_sec = sim_config["simulation_length_seconds"]
 framerate = sim_config["framerate"]
 acc = sim_config["acceleration"]
-goal1 = sim_config["goal_A"]
-goal2 = sim_config["goal_B"]
 
 class Grid:
     def __init__(self, width, height):
@@ -27,13 +25,13 @@ class Entity:
         self.grid = grid
         self.speed = 0.2
 
-    def move(self, target, speed = 0.2):
+    def move(self, target, speed = 0.15):
         dx, dy = target[0] - self.current_position[0], target[1] - self.current_position[1]
         direction = (dx / abs(dx) if dx != 0 else 0, dy / abs(dy) if dy != 0 else 0)
         x, y = self.current_position[0] + direction[0]*speed, self.current_position[1] + direction[1]*speed
         self.current_position = (max(0, min(x, self.grid.width)), max(0, min(y, self.grid.height)))
 
-    def move_semicircle(self, target, speed = 0.2, radius=2):
+    def move_semicircle(self, target, speed = 0.2, radius=1):
         dx, dy = target[0] - self.current_position[0], target[1] - self.current_position[1]
         direction = (dx / abs(dx) if dx != 0 else 0, dy / abs(dy) if dy != 0 else 0)
         angle = math.atan2(dy, dx)
@@ -62,21 +60,42 @@ class Player(Entity):
         self.ball = ball
 
     def move(self, target):
-        speed = self.speed*acc
+        speed = self.speed
         if self.has_ball_control:
-            if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
-                     and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
-                self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
-                target = self.get_closest_opposing_player(self.team.opposing_team)
+            nearest_teammate = self.get_nearest_teammate()
+            closest_opponent = self.team.opposing_team.players[np.argmin([np.linalg.norm(np.array(self.current_position) - np.array(pos)) \
+                                                for pos in [player.current_position for player in self.team.opposing_team.players]])] 
+            if np.linalg.norm(np.array(self.current_position) - np.array(closest_opponent.current_position)) < 0.3:
+                dx, dy = self.current_position[0] - closest_opponent.current_position[0], self.current_position[1] - closest_opponent.current_position[1]
+                direction = (dx / abs(dx) if dx != 0 else 0, dy / abs(dy) if dy != 0 else 0)
+                target = (self.current_position[0] + direction[0]*speed, self.current_position[1] + direction[1]*speed)
             else:
-                target = (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1]))
-                self.ball.move(self.current_position)
+                if not self.opponent_between_target(nearest_teammate.current_position, self.team.opposing_team) and nearest_teammate.distance_to_opposing_goals() < self.distance_to_opposing_goals() and np.linalg.norm(np.array(self.current_position) - np.array(closest_opponent.current_position)) <= 1: 
+                    self.hit_ball(self.ball, nearest_teammate.current_position)
+
+                if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
+                     and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
+                    self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
+                    target = self.get_closest_opposing_player(self.team.opposing_team)
+                else:
+                    target = (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1]))
+                    self.ball.move(target)
         super().move(target, speed)
        
+    def get_nearest_teammate(self):
+        return min(self.team.players, key=lambda player: np.linalg.norm(np.array(self.current_position) - np.array(player.current_position)) \
+                if player != self else float('inf'))
+
+    def distance_to_opposing_goals(self):
+        opposing_goals = np.array((self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
+        player_position = np.array(self.current_position)
+        return np.linalg.norm(opposing_goals - player_position)
+
     def hit_ball(self, ball, target):
         #че дел если есть противник между таргетом и игрком?
         if self.has_ball_control:
-            self.ball.move(target, self.speed*acc)
+            ball_speed = 2*self.speed
+            self.ball.move(target, ball_speed)
             self.ball.controlled_by = None
             self.has_ball_control = False
 
@@ -93,6 +112,7 @@ class Player(Entity):
 
     def get_target_position(self, ball):
         return ball if self.is_ball_in_zone(ball) else (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
+        #return (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
     
     def opponent_between_target(self, target, opposing_team):
         for player in opposing_team.players:
@@ -115,6 +135,11 @@ class OffencePlayer(Player):
         self.zone = zone
     def move(self, ball, opposing_team):
         target = self.get_target_position(ball)
+        if self.team.mode == 'defensive':
+            target = self.get_target_position(ball)
+        else:
+            target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
+
         super().move(target)
 
 class CenterPlayer(Player):
@@ -122,8 +147,12 @@ class CenterPlayer(Player):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
     def move(self, ball, opposing_team):
-        self.target = self.get_target_position(ball)
-        super().move(self.target)
+        target = self.get_target_position(ball)
+        if self.team.mode == 'defensive':
+            target = self.get_target_position(ball)
+        else:
+            target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
+        super().move(target)
 
 class DefencePlayer(Player):
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
@@ -131,8 +160,13 @@ class DefencePlayer(Player):
         self.zone = zone
     
     def move(self, ball, opposing_team):
-        self.target = self.get_target_position(ball)
-        super().move(self.target)
+        target = self.get_target_position(ball)
+        if self.team.mode == 'defensive':
+            target = self.get_target_position(ball)
+        else:
+            target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
+
+        super().move(target)
 
 class Team:
     def __init__(self, name, grid, formation, ball, opposing_team=None, opposing_goals=None):
@@ -164,8 +198,28 @@ class Team:
 
     def move(self, grid, ball):
         for player in self.players:
-            if np.linalg.norm(np.array(player.current_position) - np.array(ball.current_position)) < 0.1:  
+            if np.linalg.norm(np.array(player.current_position) - np.array(ball.current_position)) <= 0.15:  
                 player.has_ball_control = True
+                ball.current_position = player.current_position
+            for opponent in self.opposing_team.players:
+                if np.linalg.norm(np.array(player.current_position) - np.array(opponent.current_position)) < 0.05 and player.has_ball_control:
+                    if random.random() < 0.75:
+                        player.has_ball_control = True
+                        opponent.has_ball_control = False
+                    else:
+                        player.has_ball_control = False
+                        opponent.has_ball_control = True
+                    if player.has_ball_control:
+                        target = (self.opposing_goals[0], np.random.randint(self.opposing_goals[1][0],self.opposing_goals[1][1]))
+                        super(type(player), player).move(target)
+                        ball.move(target)
+                        self.mode = 'offensive'
+                    else:
+                        target = (self.opposing_team.opposing_goals[0], np.random.randint(self.opposing_team.opposing_goals[1][0], \
+                                self.opposing_team.opposing_goals[1][1]))
+                        super(type(opponent), opponent).move(target)
+                        ball.move(target)
+                        self.mode = 'defensive'
             player.move(ball.current_position, self.opposing_team)
 
     def update_mode(self):
@@ -189,12 +243,14 @@ class SoccerMatch:
         data = []
         for i in range(framerate * sim_length_sec):
             self.team1.update_mode()
-            self.team2.update_mode()
+            if self.team1.mode == 'offensive':
+                self.team2.mode = 'defensive'
+            elif self.team1.mode == 'defensive':
+                self.team2.mode = 'offensive'
+            else:
+                self.team2.mode = 'neutral'
             self.team1.move(self.grid, self.ball)
             self.team2.move(self.grid, self.ball)
-            #обновлять мяч
-            #self.ball.target = controlling_player.current_position
-
             for team in [self.team1, self.team2]:
                 for player in team.players:
                     data.append([1, i, i * 0.04, team.name, player.player_id, *player.current_position, *self.ball.current_position])
