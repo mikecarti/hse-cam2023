@@ -35,20 +35,33 @@ class FollowerStrategy(CameraMovementStrategy):
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
+        self.target_pos = to
         corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
         principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
 
         if self._close_enough(principal_axis_intersection, self.target_pos):
             logger.warning(f"Follower strategy reached destination: {self.target_pos}")
 
-        if self.gradual_movement.empty():
-        self._plan_gradual_movement(principal_axis_intersection, )
-            intermediate_target_pos = self.gradual_movement.get(block=True)
-        self.current_pos = intermediate_target_pos  # or maybe = principal_axis_intersection
+        intermediate_target_pos = self._get_next_intermediate_target(principal_axis_intersection, self.target_pos)
+        # or maybe self.current_pos = principal_axis_intersection
+        self.current_pos = intermediate_target_pos
 
         delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
         return delta_yaw, delta_pitch
 
-
     def is_target_reached(self):
         return self._close_enough(self.current_pos, self.target_pos)
+
+    def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
+        self.gradual_movement.empty()
+
+        lin_space = np.linspace(cur_pos, target_pos, self.n_intermediate_steps)
+        for point in lin_space:
+            self.gradual_movement.put(point)
+        return self.gradual_movement
+
+    def _get_next_intermediate_target(self, cur_pos, target_pos):
+        if self.gradual_movement.empty():
+            self._plan_gradual_movement(cur_pos, target_pos)
+        intermediate_target_pos = self.gradual_movement.get(block=True)
+        return intermediate_target_pos
