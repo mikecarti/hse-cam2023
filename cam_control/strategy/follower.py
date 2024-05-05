@@ -51,7 +51,7 @@ class FollowerStrategy(CameraMovementStrategy):
     def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
 
-        n_steps = int(norm(cur_pos-target_pos) / self.speed_factor)
+        n_steps = max( int(norm(cur_pos-target_pos) / self.speed_factor), 2)
         lin_space = np.linspace(cur_pos, target_pos, n_steps)
         for point in lin_space:
             self.gradual_movement.put(point)
@@ -60,5 +60,5 @@ class FollowerStrategy(CameraMovementStrategy):
     def _get_next_intermediate_target(self, cur_pos, target_pos):
         if self.gradual_movement.empty():
             self._plan_gradual_movement(cur_pos, target_pos)
-        intermediate_target_pos = self.gradual_movement.get(block=True)
+        intermediate_target_pos = self.gradual_movement.get(block=False)
         return intermediate_target_pos
