@@ -65,7 +65,7 @@ class CamSimulation:
             )
 
             self.plotter.plot(
-                fov_points, observed_objects_positions, camera_properties=camera_properties
+                fov_points, observed_objects_positions, self.solver.visited_agents, camera_properties=camera_properties
             )
             self._log(camera_properties, players_inside_fov)
 

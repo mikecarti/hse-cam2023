@@ -48,7 +48,7 @@ class TrajectoryStrategy(CameraMovementStrategy):
 
         intermediate_target_pos = self.gradual_movement.get(block=True)
 
-        delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
+        delta_yaw, delta_pitch = self._move(principal_axis_intersection, intermediate_target_pos, yaw, pitch)
         return delta_yaw, delta_pitch
 
     def _change_target_pos(self, prev_target_pos: Point2D = None) -> None:

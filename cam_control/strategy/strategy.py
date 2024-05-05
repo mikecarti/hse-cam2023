@@ -82,7 +82,7 @@ class CameraMovementStrategy(Strategy):
         """
         pass
 
-    def _move(self, target_pos: Point2D, principal_axis_intersection: Point2D, yaw: float, pitch: float) \
+    def _move(self, principal_axis_intersection: Point2D, target_pos: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
         """
         Move the camera to the target position.

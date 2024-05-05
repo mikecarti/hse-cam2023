@@ -33,16 +33,16 @@ class FollowerStrategy(CameraMovementStrategy):
         self.target_pos = to
         corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
         principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
+        cur_pos = principal_axis_intersection
 
         if self._close_enough(principal_axis_intersection, self.target_pos):
             logger.warning(f"Follower strategy reached destination: {self.target_pos}")
             return 0, 0
 
-        intermediate_target_pos = self._get_next_intermediate_target(principal_axis_intersection, self.target_pos)
-        # or maybe self.current_pos = principal_axis_intersection
+        intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)
         self.current_pos = intermediate_target_pos
 
-        delta_yaw, delta_pitch = self._move(intermediate_target_pos, principal_axis_intersection, yaw, pitch)
+        delta_yaw, delta_pitch = self._move(cur_pos, intermediate_target_pos, yaw, pitch)
         return delta_yaw, delta_pitch
 
     def is_target_reached(self):
