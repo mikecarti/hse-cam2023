@@ -184,7 +184,8 @@ class CameraMovementStrategy(Strategy):
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        return dist < 0.1
+        eps = 0.1
+        return dist < eps
 
     def _plan_gradual_movement(self, curr_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()

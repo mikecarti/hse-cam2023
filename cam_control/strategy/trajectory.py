@@ -2,7 +2,6 @@ from cam_control.strategy.strategy import CameraMovementStrategy
 import numpy as np
 from typing import Tuple, List, Dict
 from loguru import logger
-from queue import Queue
 from cam_control.data_type import Point2D, Point3D
 
 
