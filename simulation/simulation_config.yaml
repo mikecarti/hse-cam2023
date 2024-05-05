@@ -2,10 +2,9 @@ height: 100
 width: 100
 simulation_length_seconds: 15
 framerate: 25
+acceleration: 1.05
 goal_A:
-  x_range: [0, 5]
   y_range: [45, 55]
 goal_B:
-  x_range: [95, 100]
   y_range: [45, 55]
 

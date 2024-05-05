@@ -30,6 +30,7 @@ def animate(frame_number: int):
     team2_data = frame_data[frame_data['Team'] == 'Team B']
     ax.scatter(team2_data['X'], team2_data['Y'], color='red', label='Team 2')
 
+    ax.scatter(team2_data['Ball_x'].values[0], team2_data['Ball_y'].values[0], color='black', label='Ball')
     ax.legend()
 
     ax.set_xlabel('X')
