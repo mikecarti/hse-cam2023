@@ -1,16 +1,10 @@
-from typing import Tuple, List, Dict, Union
+from typing import Tuple, List, Dict
 import numpy as np
-from numpy.linalg import norm
-from strategy.core import Strategy
-from math import atan
-import math
 from loguru import logger
 from queue import Queue
 
+from cam_control.data_type import Point2D, Point3D
 from cam_control.strategy.strategy import CameraMovementStrategy
-
-Point2D = Tuple[float, float] | np.array
-Point3D = Tuple[float, float, float] | np.array
 
 
 class FollowerStrategy(CameraMovementStrategy):

@@ -3,9 +3,7 @@ import numpy as np
 from typing import Tuple, List, Dict
 from loguru import logger
 from queue import Queue
-
-Point2D = Tuple[float, float] | np.array
-Point3D = Tuple[float, float, float] | np.array
+from cam_control.data_type import Point2D, Point3D
 
 
 class TrajectoryStrategy(CameraMovementStrategy):
