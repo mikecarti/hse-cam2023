@@ -8,6 +8,7 @@ class MockPlayerSim:
         self.min_x, self.max_x = field_loc[0], field_loc[0] + field_size[0]
         self.min_y, self.max_y = field_loc[1], field_loc[1] + field_size[1]
         self.static_pos = np.array([[50, 50], [65, 55], [80, 70], [50, 80], [80, 50], [90, 50], [45, 45]])
+        # self.static_pos = np.array([[80, 80]])
         self.n_agents = len(self.static_pos)
 
         np.random.seed(1337)
