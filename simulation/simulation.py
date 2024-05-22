@@ -26,9 +26,21 @@ class Entity:
         self.speed = 0.05
 
     def move(self, target):
-        dx, dy = target[0] - self.current_position[0], target[1] - self.current_position[1]
-        direction = (dx / abs(dx) if dx != 0 else 0, dy / abs(dy) if dy != 0 else 0)
-        x, y = self.current_position[0] + direction[0]*self.speed, self.current_position[1] + direction[1]*self.speed
+        dx = target[0] - self.current_position[0]
+        dy = target[1] - self.current_position[1]
+
+        angle_rad = math.atan2(dy, dx)
+
+        angle_deg = math.degrees(angle_rad)
+
+        angle_deg = angle_deg % 360
+
+        dx = self.speed * math.cos(angle_rad)
+        dy = self.speed * math.sin(angle_rad)
+
+        x = self.current_position[0] + dx
+        y = self.current_position[1] + dy
+
         self.current_position = (max(0, min(x, self.grid.width)), max(0, min(y, self.grid.height)))
 
 class Ball(Entity):
@@ -221,7 +233,6 @@ class Team:
                 ball.current_position = player.current_position
             else:
                 player.has_ball_control = False
-                player.speed = 0.05
                 
         for opp_player in self.opposing_team.players:
             if np.linalg.norm(np.array(opp_player.current_position) - np.array(ball.current_position)) < 0.3:
@@ -231,7 +242,6 @@ class Team:
                 ball.current_position = opp_player.current_position
             else:
                 opp_player.has_ball_control = False
-                opp_player.speed = 0.05
                 
         if any(player.has_ball_control for player in self.players):
             self.mode = 'offensive'
