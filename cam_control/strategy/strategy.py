@@ -8,7 +8,6 @@ from loguru import logger
 from queue import Queue
 from abc import ABC, abstractmethod
 
-
 Point2D = Tuple[float, float] | np.array
 Point3D = Tuple[float, float, float] | np.array
 
@@ -57,7 +56,7 @@ class CameraMovementStrategy(Strategy):
         super().__init__(field_size=field_size, field_loc=field_loc)
         self.step = -1
         self.n_intermediate_steps = 20
-        self.speed_factor = 1.5
+        self.speed_factor = 2
 
         self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
@@ -82,65 +81,77 @@ class CameraMovementStrategy(Strategy):
         """
         pass
 
-    def _move(self, principal_axis_intersection: Point2D, target_pos: Point2D, yaw: float, pitch: float) \
+    def _move(self, cur_pos: Point2D, target_pos: Point2D, yaw: float, pitch: float) \
             -> Tuple[float, float]:
         """
         Move the camera to the target position.
 
         Args:
             target_pos (Point2D): Target position to move the camera.
-            principal_axis_intersection (Point2D): Intersection of principal axis of projection and the furthest line of the projection.
+            cur_pos (Point2D): Middle of FOV Polygon
             yaw (float): Current yaw of the camera.
             pitch (float): Current pitch of the camera.
 
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
-        principal_axis_intersection_target_pos = target_pos
         delta_yaw, delta_pitch = self._calculate_angle(cam_pos=self.cam_pos[:2], cam_height=self.cam_pos[2],
-                                                       cam_pitch=pitch, init_pos=principal_axis_intersection,
-                                                       target_pos=principal_axis_intersection_target_pos)
+                                                       cam_pitch=pitch, init_pos=cur_pos,
+                                                       target_pos=target_pos)
 
         logger.debug(f"Pitch: {pitch}+({delta_pitch}), Yaw: {yaw}+({delta_yaw})")
-        logger.debug(f"init_pos: {principal_axis_intersection}, target_pos: {principal_axis_intersection_target_pos}")
+        logger.debug(f"init_pos: {cur_pos}, target_pos: {target_pos}")
         # sleep(0.5)
         return delta_yaw, delta_pitch
 
     def _calculate_angle(self, cam_pos: Point2D, cam_height: float, cam_pitch: float,
                          init_pos: Point2D, target_pos: Point2D) -> Tuple[float, float]:
         """
-        Calculate the angle of the camera.
+        Calculate the yaw and pitch of the camera to aim at the target position.
 
         Args:
-            cam_pos (Point2D): Camera position.
-            cam_height (float): Height of the camera.
-            cam_pitch (float): Pitch of the camera.
-            init_pos (Point2D): Initial position.
+            cam_pos (Point2D): Camera position in the X-Y plane.
+            cam_height (float): Height of the camera above the X-Y plane.
+            cam_pitch (float): Current pitch of the camera.
+            init_pos (Point2D): Initial position (middle of FOV polygon).
             target_pos (Point2D): Target position.
 
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
-        top_aov = cam_pitch - self.vert_aov
-
         cam_x, cam_y = cam_pos
-        init_x, init_y = init_pos
         target_x, target_y = target_pos
 
-        init_vec = np.array((init_x - cam_x, init_y - cam_y))
-        target_vec = np.array((target_x - cam_x, target_y - cam_y))
+        # Calculate vectors from camera to initial and target positions
+        init_vec = np.array([init_pos[0] - cam_x, init_pos[1] - cam_y])
+        target_vec = np.array([target_x - cam_x, target_y - cam_y])
 
+        # Calculate angles of these vectors
         init_vec_angle = self._vector_angle(init_vec)
         target_vec_angle = self._vector_angle(target_vec)
 
-        tan_pitch = norm(target_vec) / norm(cam_height)
-        raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
-        pitch = 90 - raw_pitch
-
+        # Calculate delta yaw
         delta_yaw = target_vec_angle - init_vec_angle
-        delta_pitch = pitch - top_aov
 
-        logger.debug(f"raw_pitch: {raw_pitch}, corrected_pitch: {pitch}, delta_pitch: {delta_pitch}")
+        # Calculate the horizontal distance and height difference for pitch
+        horizontal_distance = np.linalg.norm(target_vec)
+        height_difference = cam_height  # Assuming the camera's height is the height difference
+
+        # Calculate the target pitch angle incorporating vertical AOV
+        target_pitch_rad = np.arctan2(height_difference, horizontal_distance)
+        target_pitch_deg = np.degrees(target_pitch_rad)
+
+        # Adjust the target pitch with the vertical angle of view
+        corrected_target_pitch = target_pitch_deg + (self.vert_aov / 2)
+
+        # Calculate the delta pitch
+        delta_pitch = corrected_target_pitch - cam_pitch
+
+        # Logging for debugging
+        logger.debug(f"cam_pos: {cam_pos}, target_pos: {target_pos}")
+        logger.debug(f"horizontal_distance: {horizontal_distance}, height_difference: {height_difference}")
+        logger.debug(f"target_pitch_rad: {target_pitch_rad}, target_pitch_deg: {target_pitch_deg}")
+        logger.debug(f"corrected_target_pitch: {corrected_target_pitch}, delta_pitch: {delta_pitch}")
 
         return delta_yaw, delta_pitch
 
@@ -185,7 +196,7 @@ class CameraMovementStrategy(Strategy):
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        eps = 0.1
+        eps = 0.5
         return dist < eps
 
     def _plan_gradual_movement(self, curr_pos: Point2D, target_pos: Point2D) -> Queue:

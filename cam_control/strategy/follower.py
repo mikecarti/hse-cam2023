@@ -3,6 +3,7 @@ import numpy as np
 from loguru import logger
 from queue import Queue
 from numpy.linalg import norm
+from shapely.geometry import Polygon
 
 from cam_control.data_type import Point2D, Point3D
 from cam_control.strategy.strategy import CameraMovementStrategy
@@ -32,10 +33,14 @@ class FollowerStrategy(CameraMovementStrategy):
         """
         self.target_pos = to
         corner1, corner2 = np.array(fov_corners)[self.furthest_corners]
-        principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
-        cur_pos = principal_axis_intersection
+        middle_of_fov_point = Polygon(fov_corners).centroid
+        middle_of_fov = middle_of_fov_point.x, middle_of_fov_point.y
+        logger.debug(f"Middle of FOV polygon: {middle_of_fov}")
+        # principal_axis_intersection = (corner1[0] + corner2[0]) / 2, (corner1[1] + corner2[1]) / 2
+        # cur_pos = principal_axis_intersection
+        cur_pos = middle_of_fov
 
-        if self._close_enough(principal_axis_intersection, self.target_pos):
+        if self._close_enough(cur_pos, self.target_pos):
             logger.warning(f"Follower strategy reached destination: {self.target_pos}")
             return 0, 0
 
@@ -51,7 +56,7 @@ class FollowerStrategy(CameraMovementStrategy):
     def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
 
-        n_steps = max( int(norm(cur_pos-target_pos) / self.speed_factor), 2)
+        n_steps = max(int(norm(cur_pos - target_pos) / self.speed_factor), 2)
         lin_space = np.linspace(cur_pos, target_pos, n_steps)
         for point in lin_space:
             self.gradual_movement.put(point)
