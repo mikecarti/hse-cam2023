@@ -16,4 +16,5 @@ if __name__ == "__main__":
         scores.append(score)
 
     avg_score = np.mean(scores)
+
     log.success(f"Average score of algorithm for N={N} is {avg_score} \nStats: {pd.Series(scores).describe()}")
