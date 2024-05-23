@@ -36,3 +36,12 @@ Simulation module is concerned with testing the hypotheses and analyzing the bes
 #### cam_control
 - Cam pitch shaking (players are not tracked immediately)
 - If players stand in a line, tracking works poorly (stuck or skipping players)
+
+## TODO:
+- No camera physics (enertion, angle speed)
+- No prediction of players
+- Players are moving randomly
+- Players can block view
+- Measure metrics
+- Make camera adapt to ones player position on the fly
+- Detect when player's face is facing the right direction

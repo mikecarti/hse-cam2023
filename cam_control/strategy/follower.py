@@ -58,6 +58,7 @@ class FollowerStrategy(CameraMovementStrategy):
         n_steps = int(max(n_iterations, 2))
 
         lin_space = np.linspace(cur_pos, target_pos, n_steps)
+        self.final_target = target_pos
         for point in lin_space:
             self.gradual_movement.put(point)
         return self.gradual_movement

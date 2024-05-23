@@ -23,7 +23,7 @@ class Entity:
     def __init__(self, position, grid):
         self.current_position = position
         self.grid = grid
-        self.speed = 0.05
+        self.speed = 0.0001
 
     def move(self, target):
         dx = target[0] - self.current_position[0]

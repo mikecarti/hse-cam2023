@@ -10,11 +10,13 @@ import numpy as np
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], sleep_each_iter: float ,trajectory: np.ndarray = None):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float],
+                 sleep_each_iter: float ,trajectory: np.ndarray = None, aim_radius: float = 1):
         self.vis_point_plot = None
         self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
 
+        self.aim_radius = aim_radius
         self.field_size = field_size  # (width, height)
         self.field_loc = field_loc  # (x, y)
         self.plot_field()
@@ -144,7 +146,7 @@ class Plotter:
 
     def plot_aim(self, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]):
         # Create an empty red circle at cur_pos
-        cur_circle = Circle(cur_pos, 3, edgecolor='red', fill=False)  # Adjust radius as needed
+        cur_circle = Circle(cur_pos, self.aim_radius, edgecolor='red', fill=False)  # Adjust radius as needed
         self.ax.add_patch(cur_circle)
         # Save the circle to self.dots for later removal
         self.dots.append(cur_circle)
