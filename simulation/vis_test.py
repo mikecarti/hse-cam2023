@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import yaml
 
 INTERVAL = 1000/25
