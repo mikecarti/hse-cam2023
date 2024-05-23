@@ -45,4 +45,3 @@ def animate(frame_number: int):
 ani = animation.FuncAnimation(fig, animate, frames=range(df['Frame'].min(), df['Frame'].max() + 1), interval=INTERVAL)
 ani.save('soccer_match_simulation.mp4', writer='ffmpeg')
 plt.close(fig)
-
