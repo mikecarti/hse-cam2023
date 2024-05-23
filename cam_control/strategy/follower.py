@@ -41,7 +41,7 @@ class FollowerStrategy(CameraMovementStrategy):
         cur_pos = middle_of_fov
 
         if self._close_enough(cur_pos, self.target_pos):
-            logger.warning(f"Follower strategy reached destination: {self.target_pos}")
+            logger.warning(f"Follower strategy finished traversing at position: {self.target_pos}")
             return 0, 0
 
         intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)

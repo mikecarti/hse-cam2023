@@ -1,18 +1,18 @@
 import os
 import sys
 
-from cam_control.strategy.follower import FollowerStrategy
-from cam_control.strategy.trajectory import TrajectoryStrategy
-from cam_control.tsp_solver.neighbor import NeighborSolver
-
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
 sys.path.append(cam_dir)
 cam_sim = cam_dir + "/cam_simulation/diplomagm"
 sys.path.append(cam_sim)
 
+from cam_control.metric import Metric
+from cam_control.strategy.follower import FollowerStrategy
+from cam_control.tsp_solver.neighbor import NeighborSolver
 from player_detect import PlayerDetector
-from strategy.strategy import CameraMovementStrategy
+# from cam_control.strategy.trajectory import TrajectoryStrategy
+# from strategy.strategy import CameraMovementStrategy
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 from plot import Plotter
 from loguru import logger
@@ -20,7 +20,7 @@ from mock_player_sim import MockPlayerSim
 
 
 class CamSimulation:
-    def __init__(self):
+    def __init__(self, random_seed=42):
         self.fov_calculator = FOVCalculator()
 
         field_size = self.fov_calculator.get_field_size()
@@ -33,8 +33,9 @@ class CamSimulation:
         self.strategy = FollowerStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc)
         self.player_detector = PlayerDetector()
-        self.player_sim = MockPlayerSim(field_size, field_loc)
+        self.player_sim = MockPlayerSim(field_size, field_loc, random_seed=random_seed)
         self.solver = NeighborSolver(n_observed_agents=self.player_sim.n_agents)
+        self.metric = Metric(n_players=self.player_sim.n_agents)
 
         self.log_angles = True
         self.log_players = True
@@ -68,14 +69,22 @@ class CamSimulation:
                 fov_points, observed_objects_positions, self.solver.visited_agents, camera_properties=camera_properties
             )
             self._log(camera_properties, players_inside_fov)
-
+            score = self.metric.count_iteration(delta_yaw, delta_pitch)
             time += 1
+
+            if score:
+                break
+        return score
 
     def _log(self, camera_properties, players_inside_fov):
         if self.log_angles:
             logger.info(f"{camera_properties}")
         if self.log_players:
             logger.info(f"Players that are inside FOV: {players_inside_fov}")
+
+    @staticmethod
+    def _finished(delta_yaw: float, delta_pitch: float):
+        return delta_yaw == 0 and delta_pitch == 0
 
 
 if __name__ == '__main__':

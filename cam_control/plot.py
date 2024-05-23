@@ -128,3 +128,6 @@ class Plotter:
         ax.plot([], [], label=legend_label)  # Assuming x_data, y_data are your plotting data
         # Display the legend on the plot
         self.legend = ax.legend()
+
+    def __del__(self):
+        plt.close(self.fig)
