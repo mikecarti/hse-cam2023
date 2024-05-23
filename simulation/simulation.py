@@ -126,7 +126,8 @@ class Player(Entity):
             s = (dist_player_target + dist_opponent_target + dist_player_opponent) / 2
             if dist_player_target != 0:
                 h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
-                if h < 5*dist_player_opponent/4.25 or dist_opponent_target < 2.15 or dist_player_target < 2.5: #time for the opposing player to get between the ball and the target > time for the ball to get to the target       
+                #rewrite in terms of speed!
+                if h < 1.44*dist_player_opponent/11.68 or dist_opponent_target < 2.15 or dist_player_target < 2.5: #time for the opposing player to get between the ball and the target > time for the ball to get to the target       
                     return True
             else:#we do not want to give pass to a player, who is on the same coordinates, as our player with the ball 
                 return True
@@ -148,9 +149,9 @@ class GoalKeeper(Player):
 
     def move(self, ball, opposing_team):
         if self.has_ball_control:
-            pass_to = self.find_nearest_open_teammate().current_position
+            pass_to = self.find_nearest_open_teammate()
             if pass_to != 1:
-                self.hit_ball(ball, pass_to)
+                self.hit_ball(ball, pass_to.current_position)
             else:
                 self.hit_ball(ball, [50, 50])
 
