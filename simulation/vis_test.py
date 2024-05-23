@@ -3,6 +3,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import yaml
+import time
 
 INTERVAL = 1000/25
 
@@ -41,7 +42,10 @@ def animate(frame_number: int):
     ax.set_xlim([0, grid_width])
     ax.set_ylim([0, grid_height])   
 
-   
+start = time.time()
 ani = animation.FuncAnimation(fig, animate, frames=range(df['Frame'].min(), df['Frame'].max() + 1), interval=INTERVAL)
 ani.save('soccer_match_simulation.mp4', writer='ffmpeg')
 plt.close(fig)
+end = time.time()
+
+print(f"Time taken to animate: {(end - start):.2f} seconds")
