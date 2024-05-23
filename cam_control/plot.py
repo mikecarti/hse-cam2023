@@ -1,5 +1,7 @@
 from typing import Tuple, Dict
 
+from matplotlib.patches import Circle
+
 from strategy.utils import calc_corners
 from cam_simulation.diplomagm.main_without_app import FOVCalculator
 import matplotlib.pyplot as plt
@@ -8,7 +10,7 @@ import numpy as np
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], trajectory: np.ndarray = None):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], sleep_each_iter: float ,trajectory: np.ndarray = None):
         self.vis_point_plot = None
         self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
@@ -24,9 +26,10 @@ class Plotter:
         self.legend = None
         self.lines = []
         self.dots = []
+        self.pause_time = sleep_each_iter
 
     def plot(self, fov_points: np.ndarray, observed_objects_positions: np.ndarray, visited_objects: np.array,
-             camera_properties: Dict) -> None:
+             camera_properties: Dict, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]) -> None:
         """
         Args:
             fov_points: np.ndarray of FOV points
@@ -43,13 +46,14 @@ class Plotter:
         self._clear_irrelevant()
         self.plot_fov(fov_points)
         self.plot_agents(observed_objects_positions, visited_objects)  # agents
+        self.plot_aim(cur_pos, target_pos)
         # self.plot_legend(yaw, pitch)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.axis('scaled')
         self.ax.set_xlim([-20, 150])
         self.ax.set_ylim([-20, 150])
-        plt.pause(0.05)
+        plt.pause(self.pause_time)
 
     def plot_fov(self, points, color="r"):
         ax = self.ax
@@ -64,15 +68,24 @@ class Plotter:
             self.lines.append(line)
 
     def _clear_irrelevant(self):
-        assert len(self.dots) == len(self.lines)
-        for i in range(len(self.lines)):
-            self.dots[i].remove()
-            lines = self.lines[i]
-            for line in lines:
+        # assert len(self.dots) == len(self.lines), "dots and lines must have the same length"
+
+        # Remove all stored dots (patches)
+        for dot in self.dots:
+            dot.remove()
+
+        # Remove all stored lines
+        for line_group in self.lines:
+            for line in line_group:
                 line.remove()
 
+        # Remove the legend if it exists
         if self.legend:
             self.legend.remove()
+
+        # Clear the lists
+        self.dots.clear()
+        self.lines.clear()
 
     def plot_field(self):
         ax = self.ax
@@ -128,6 +141,22 @@ class Plotter:
         ax.plot([], [], label=legend_label)  # Assuming x_data, y_data are your plotting data
         # Display the legend on the plot
         self.legend = ax.legend()
+
+    def plot_aim(self, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]):
+        # Create an empty red circle at cur_pos
+        cur_circle = Circle(cur_pos, 3, edgecolor='red', fill=False)  # Adjust radius as needed
+        self.ax.add_patch(cur_circle)
+        # Save the circle to self.dots for later removal
+        self.dots.append(cur_circle)
+
+        # Create an empty yellow circle at target_pos
+        target_circle = Circle(target_pos, 5, edgecolor='yellow', linewidth=3 ,fill=False)  # Adjust radius as needed
+        self.ax.add_patch(target_circle)
+        # Save the circle to self.dots for later removal
+        self.dots.append(target_circle)
+
+        # Draw the plot to ensure the circles are visible
+        self.fig.canvas.draw()
 
     def __del__(self):
         plt.close(self.fig)

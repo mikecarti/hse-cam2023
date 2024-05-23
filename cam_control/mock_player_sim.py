@@ -3,7 +3,7 @@ import time
 
 
 class MockPlayerSim:
-    def __init__(self, field_size, field_loc, random_seed: int, n_agents=7):
+    def __init__(self, field_size, field_loc, random_seed: int, n_agents=22):
         np.random.seed(random_seed)
         self.field_size = field_size
         self.min_x, self.max_x = field_loc[0], field_loc[0] + field_size[0]
@@ -22,10 +22,12 @@ class MockPlayerSim:
 
     def get_positions(self, time, randomize=False) -> np.ndarray:
         if randomize:
-            deltas = np.random.normal(0, 2, size=self.n_agents * 2)
+            deltas = np.random.normal(0, 1, size=self.n_agents * 2)
             for i, pos in enumerate(self.player_pos):
                 new_x = pos[0] + deltas[2 * i]
                 new_y = pos[1] + deltas[2 * i + 1]
+                # new_x = pos[0]
+                # new_y = 50
 
                 if not (self.min_x <= new_x <= self.max_x):
                     if new_x < self.min_x:

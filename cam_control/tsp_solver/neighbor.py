@@ -6,8 +6,9 @@ from numpy.linalg import norm
 
 
 class NeighborSolver:
-    def __init__(self, n_observed_agents: int):
+    def __init__(self, n_observed_agents: int, eps: float):
         self.visited_agents = np.zeros(n_observed_agents)
+        self.eps = eps
 
     def determine_next_position(self, cur_pos: Point2D, agents: np.ndarray[Point2D]) -> Point2D:
         """
@@ -23,6 +24,9 @@ class NeighborSolver:
         self._update_visited_agents(agent_index, agents[agent_index], cur_pos)
         logger.debug(f"Moving to agent #{agent_index} with position {closest_point}")
         return closest_point
+
+    def get_number_of_unvisited_agents(self):
+        return np.sum(self.visited_agents == 0)
 
     def _find_closest_agent(self, point: Point2D, agents: np.ndarray[Point2D]) -> Point2D:
         unvisited_agents_index = np.where(self.visited_agents == 0)[0]
@@ -63,5 +67,4 @@ class NeighborSolver:
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        eps = 0.1
-        return dist < eps
+        return dist < self.eps

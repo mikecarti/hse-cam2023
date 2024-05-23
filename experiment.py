@@ -4,7 +4,7 @@ import pandas as pd
 from cam_control.simulation import CamSimulation
 from loguru import logger as log
 
-N = 3
+N = 100
 
 if __name__ == "__main__":
     scores = []
@@ -16,4 +16,4 @@ if __name__ == "__main__":
         scores.append(score)
 
     avg_score = np.mean(scores)
-    log.success(f"Average score of algorithm for N={N} is {avg_score} \nStats: {pd.Series(avg_score).describe()}")
+    log.success(f"Average score of algorithm for N={N} is {avg_score} \nStats: {pd.Series(scores).describe()}")

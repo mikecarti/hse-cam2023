@@ -31,3 +31,8 @@ for finding the shortest path on a graph.
 
 # Simulation
 Simulation module is concerned with testing the hypotheses and analyzing the best strategies for solving a problem.
+
+## Current bugs: 
+#### cam_control
+- Cam pitch shaking (players are not tracked immediately)
+- If players stand in a line, tracking works poorly (stuck or skipping players)
