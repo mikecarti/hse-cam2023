@@ -118,6 +118,7 @@ class Player(Entity):
             #Heron's Formula for the area of a triangle --> find height to the side of triangle
             s = (dist_player_target + dist_opponent_target + dist_player_opponent) / 2
             h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
+            #случай, когда высота падает на продолжение стороны треугольника (если треугольник тупоугольный и вершина опущена из острого угла)
             if h > 5*dist_player_opponent/4.25: #time for the opposing player to get between the ball and the target > time for the ball to get to the target       
                 return True
         return False
@@ -191,7 +192,7 @@ class DefencePlayer(Player):
 class Team:
     def __init__(self, name, grid, formation, ball, opposing_team=None, opposing_goals=None):
         self.name = name
-        self.mode = None
+        self.mode = 'neutral'
         self.opposing_team = opposing_team
         self.opposing_goals = opposing_goals
         self.hit_area = None
