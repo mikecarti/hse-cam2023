@@ -52,11 +52,12 @@ class CameraMovementStrategy(Strategy):
     """
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Point2D, cam_pos: Point3D,
-                 focal_length: float, image_sensor: Dict):
+                 focal_length: float, image_sensor: Dict, eps: float):
         super().__init__(field_size=field_size, field_loc=field_loc)
         self.step = -1
         self.n_intermediate_steps = 20
         self.speed_factor = 2
+        self.eps = eps
 
         self.gradual_movement = Queue()
         self.vert_aov = self._calculate_vert_aov(focal_length, image_sensor["height"], image_sensor["width"])
@@ -196,8 +197,7 @@ class CameraMovementStrategy(Strategy):
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        eps = 0.5
-        return dist < eps
+        return dist < self.eps
 
     def _plan_gradual_movement(self, curr_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
