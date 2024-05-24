@@ -13,7 +13,7 @@ class MockPlayerSim:
 
         np.random.seed(1337)
 
-    def _init_players(self, n_agents):
+    def _init_players(self, n_agents) -> np.ndarray:
         static_pos = []
         for i in range(n_agents):
             static_pos.append([np.random.uniform(self.min_x, self.max_x),

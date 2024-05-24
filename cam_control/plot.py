@@ -11,7 +11,7 @@ import numpy as np
 class Plotter:
 
     def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float],
-                 sleep_each_iter: float ,trajectory: np.ndarray = None, aim_radius: float = 1):
+                 sleep_each_iter: float, trajectory: np.ndarray = None, aim_radius: float = 1):
         self.vis_point_plot = None
         self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
@@ -29,6 +29,9 @@ class Plotter:
         self.lines = []
         self.dots = []
         self.pause_time = sleep_each_iter
+
+        mng = plt.get_current_fig_manager()
+        mng.full_screen_toggle()
 
     def plot(self, fov_points: np.ndarray, observed_objects_positions: np.ndarray, visited_objects: np.array,
              camera_properties: Dict, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]) -> None:
@@ -152,7 +155,7 @@ class Plotter:
         self.dots.append(cur_circle)
 
         # Create an empty yellow circle at target_pos
-        target_circle = Circle(target_pos, 5, edgecolor='yellow', linewidth=3 ,fill=False)  # Adjust radius as needed
+        target_circle = Circle(target_pos, 5, edgecolor='yellow', linewidth=3, fill=False)  # Adjust radius as needed
         self.ax.add_patch(target_circle)
         # Save the circle to self.dots for later removal
         self.dots.append(target_circle)

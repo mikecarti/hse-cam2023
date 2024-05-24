@@ -16,7 +16,7 @@ class FollowerStrategy(CameraMovementStrategy):
                          cam_pos=cam_pos, focal_length=focal_length, image_sensor=image_sensor, eps=eps)
 
         self.cam_aim = cam_aim_func
-        self.current_pos = [0, 0]
+        self.intermediate_target_pos = [0, 0]
         self.target_pos = [0, 0]
 
     def move(self, fov_corners: List[Point2D], yaw: float, pitch: float, to: Point2D) \
@@ -35,21 +35,20 @@ class FollowerStrategy(CameraMovementStrategy):
         self.target_pos = to
         cur_pos = self.cam_aim(fov_corners)
 
-        middle_of_fov = cur_pos
-        logger.debug(f"Middle of FOV polygon: {middle_of_fov}")
-
-        if self._close_enough(cur_pos, self.target_pos):
+        logger.debug(f"Current position of camera aim: {cur_pos}")
+        if self.is_target_reached(cur_pos):
             logger.warning(f"Follower strategy finished traversing at position: {self.target_pos}")
             return 0, 0
 
-        intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)
-        self.current_pos = intermediate_target_pos
+        self.intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)
 
-        delta_yaw, delta_pitch = self._move(cur_pos, intermediate_target_pos, yaw, pitch)
+        delta_yaw, delta_pitch = self._move(cur_pos=cur_pos, target_pos=self.intermediate_target_pos,
+                                            yaw=yaw, pitch=pitch)
         return delta_yaw, delta_pitch
 
-    def is_target_reached(self):
-        return self._close_enough(self.current_pos, self.target_pos)
+    def is_target_reached(self, cur_pos: Point2D):
+        return self._close_enough(cur_pos, self.target_pos)
+
 
     def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
