@@ -48,4 +48,4 @@ ani.save('soccer_match_simulation.mp4', writer='ffmpeg')
 plt.close(fig)
 end = time.time()
 
-print(f"Time taken to animate: {(end - start) / 60 :.2f} minutes")
+print(f"Time taken to animate: {(end - start):.2f} seconds")
