@@ -26,8 +26,8 @@ class CamSimulation:
     def __init__(self, random_seed=42):
         self.fov_calculator = FOVCalculator()
 
-        CLOSE_ENOUGH_EPS = 3
-        SLEEP_EACH_ITER = 0.001
+        CLOSE_ENOUGH_EPS = 2
+        SLEEP_EACH_ITER = 0.05
 
         field_size = self.fov_calculator.get_field_size()
         field_loc = self.fov_calculator.get_field_loc()
