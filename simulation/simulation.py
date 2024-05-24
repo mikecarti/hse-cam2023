@@ -4,6 +4,7 @@ import yaml
 import math
 import random
 from typing import Tuple, List
+from scipy.stats import truncnorm
 
 with open("simulation_config.yaml", "r") as config_file:
     sim_config = yaml.safe_load(config_file)
@@ -23,7 +24,7 @@ class Entity:
     def __init__(self, position, grid):
         self.current_position = position
         self.grid = grid
-        self.speed = 0.0001
+        self.speed = 0.08 #2 meters/second, or 7.2 km/h
 
     def move(self, target):
         dx = target[0] - self.current_position[0]
@@ -47,7 +48,7 @@ class Ball(Entity):
     def __init__(self, position, grid):
         super().__init__(position, grid)
         self.controlled_by = None
-        self.speed = self.speed*4
+        self.speed = self.speed*4 #should add acceleration of 0.002 or some rand acc, with some distr(prob truncnorm)
         self.target = None
 
 class Player(Entity):
@@ -60,26 +61,32 @@ class Player(Entity):
         self.ball = ball
 
     def move(self, target):
+
         if self.current_position == self.ball.target and self.ball.controlled_by == None:
             super().move(self.current_position)
 
         else:
             if self.has_ball_control:
+                self.speed = self.speed*1.5 # add acceleration
                 if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
                 and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
                     self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
                     target = self.get_closest_opposing_player(self.team.opposing_team)
-                    super().move(target)#rand point in zone? or help in offence?
+                    super().move(target) #rand point in zone? or help in offence?
                 else:
                     pass_target = self.find_nearest_open_teammate()
-                    if pass_target != 1 and random.random() < 0.5: #change later
+                    if pass_target != 1: 
                         self.hit_ball(self.ball, pass_target.current_position)
                     else:
                         target = ((self.team.hit_area[0][1] - self.team.hit_area[0][0])/2 + self.team.hit_area[0][0],\
                                 (self.team.hit_area[1][1] - self.team.hit_area[1][0])/2+self.team.hit_area[1][0])
                         super().move(target)
             else:
-                super().move(target) 
+                if not self.is_ball_in_zone():
+                    self.speed = 0.08
+                else:
+                    self.speed = 0.08*1.5
+                super().move(target)
         
 
     def hit_ball(self, ball, target):
@@ -90,7 +97,7 @@ class Player(Entity):
         
     def find_nearest_open_teammate(self):
         open_teammates = [player for player in self.team.players\
-                if self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self]
+                if (self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self)]
         if not open_teammates:
             return 1
         return min(open_teammates, key=lambda player: np.linalg.norm(np.array(self.current_position) - np.array(player.current_position)))
@@ -107,7 +114,7 @@ class Player(Entity):
         return self.zone[0] <= float(self.ball.current_position[0]) <= self.zone[1]
 
     def is_closest_to_ball(self, ball):
-        return self == self.team.players[np.argmin([np.linalg.norm(np.array(player.current_position) - np.array(ball)) \
+        return self == self.team.players[np.argmin([np.linalg.norm(np.array(player.current_position) - np.array(ball.current_position)) \
                 for player in self.team.players])]
 
     def opponent_between_target(self, target, opposing_team):
@@ -117,9 +124,11 @@ class Player(Entity):
             dist_opponent_target = np.linalg.norm(np.array(opp_player.current_position) - np.array(target))
             #Heron's Formula for the area of a triangle --> find height to the side of triangle
             s = (dist_player_target + dist_opponent_target + dist_player_opponent) / 2
-            h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
-            #случай, когда высота падает на продолжение стороны треугольника (если треугольник тупоугольный и вершина опущена из острого угла)
-            if h > 5*dist_player_opponent/4.25: #time for the opposing player to get between the ball and the target > time for the ball to get to the target       
+            if dist_player_target != 0:
+                h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
+                if h < 5*dist_player_opponent/4.25 or dist_opponent_target < 2.15 or dist_player_target < 2.5: #time for the opposing player to get between the ball and the target > time for the ball to get to the target       
+                    return True
+            else:#we do not want to give pass to a player, who is on the same coordinates, as our player with the ball 
                 return True
         return False
 
@@ -137,15 +146,15 @@ class GoalKeeper(Player):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
 
-    def move(self, ball, target):
+    def move(self, ball, opposing_team):
         if self.has_ball_control:
-            pass_to = self.get_nearest_open_teammate() 
+            pass_to = self.find_nearest_open_teammate().current_position
             if pass_to != 1:
                 self.hit_ball(ball, pass_to)
             else:
                 self.hit_ball(ball, [50, 50])
-        else:
-            target = (np.random.randint(self.zone[0][0], self.zone[0][1]), np.random.randint(self.zone[1][0], self.zone[1][1]))
+
+        target = (np.random.randint(self.zone[0][0], self.zone[0][1]), np.random.randint(self.zone[1][0], self.zone[1][1]))
         super(Player, self).move(target)
 
 class OffencePlayer(Player):
@@ -186,7 +195,19 @@ class DefencePlayer(Player):
         self.zone = zone
     
     def move(self, ball, opposing_team):
-        target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
+        if self.is_ball_in_zone():
+            if self.team.mode == 'defensive':
+                if self.is_closest_to_ball(ball):
+                    target = ball.current_position
+                else:
+                    target = self.get_midpoint()
+            else:
+                target = ball.current_position
+        else:
+            if self.team.mode == 'neutral':
+                target = ball.current_position
+            else:
+                target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height))
         super().move(target)
 
 class Team:

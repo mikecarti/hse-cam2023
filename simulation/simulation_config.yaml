@@ -1,6 +1,6 @@
 height: 100
 width: 100
-simulation_length_seconds: 15
+simulation_length_seconds: 30
 framerate: 25
 acceleration: 1.05
 goal_A:
