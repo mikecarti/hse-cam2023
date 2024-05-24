@@ -1,7 +1,6 @@
 import os
 import sys
 
-from cam_control.cam_aim import calc_fov_middle
 
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
@@ -12,6 +11,7 @@ sys.path.append(cam_sim)
 from cam_control.metric import Metric
 from cam_control.strategy.follower import FollowerStrategy
 from cam_control.tsp_solver.neighbor import NeighborSolver
+from cam_control.cam_aim import calc_fov_middle, calc_princ_axis_intersection
 from player_detect import PlayerDetector
 # from cam_control.strategy.trajectory import TrajectoryStrategy
 # from strategy.strategy import CameraMovementStrategy
@@ -37,7 +37,7 @@ class CamSimulation:
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
 
         self.strategy = FollowerStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor,
-                                         cam_aim_func=calc_fov_middle, eps=CLOSE_ENOUGH_EPS)
+                                         cam_aim_func=calc_princ_axis_intersection, eps=CLOSE_ENOUGH_EPS)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc, sleep_each_iter=SLEEP_EACH_ITER,
                                aim_radius=CLOSE_ENOUGH_EPS)
         self.player_detector = PlayerDetector()

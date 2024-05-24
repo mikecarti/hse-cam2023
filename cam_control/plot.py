@@ -7,6 +7,7 @@ from cam_simulation.diplomagm.main_without_app import FOVCalculator
 import matplotlib.pyplot as plt
 import numpy as np
 
+FULLSCREEN = False
 
 class Plotter:
 
@@ -30,8 +31,9 @@ class Plotter:
         self.dots = []
         self.pause_time = sleep_each_iter
 
-        mng = plt.get_current_fig_manager()
-        mng.full_screen_toggle()
+        if FULLSCREEN:
+            mng = plt.get_current_fig_manager()
+            mng.full_screen_toggle()
 
     def plot(self, fov_points: np.ndarray, observed_objects_positions: np.ndarray, visited_objects: np.array,
              camera_properties: Dict, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]) -> None:
