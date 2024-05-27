@@ -1,10 +1,7 @@
 height: 100
 width: 100
-simulation_length_seconds: 30
+simulation_length_seconds: 60
 framerate: 25
-acceleration: 1.05
-goal_A:
-  y_range: [45, 55]
-goal_B:
-  y_range: [45, 55]
+acceleration: 0.002
+
 
