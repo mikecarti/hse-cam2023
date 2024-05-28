@@ -102,16 +102,16 @@ class Player(Entity):
                     target = self.get_closest_opposing_player()
                     super().move(target) #rand point in zone? or help in offence?
                 else:
+                    dist_player_opp = np.linalg.norm(np.array(self.current_position) - np.array(self.get_closest_opposing_player()))
                     pass_target = self.find_nearest_open_teammate()
-                    if pass_target != -1: 
-                        self.hit_ball(self.ball, pass_target.current_position)
-                    else: 
-                        dist_player_opp = np.linalg.norm(np.array(self.current_position) - np.array(self.get_closest_opposing_player()))
-                        if dist_player_opp > 2.5:
-                            target = ((self.team.hit_area[0][1] - self.team.hit_area[0][0])/2 + self.team.hit_area[0][0],\
+                    if dist_player_opp > 3:
+                        target = ((self.team.hit_area[0][1] - self.team.hit_area[0][0])/2 + self.team.hit_area[0][0],\
                                     (self.team.hit_area[1][1] - self.team.hit_area[1][0])/2+self.team.hit_area[1][0])
-                            super().move(target)
-                        else:
+                        super().move(target)
+                    else:
+                        if pass_target != -1: 
+                            self.hit_ball(self.ball, pass_target.current_position)
+                        else: 
                             target = self.get_closest_opposing_player()
                             super().move_opposite(target)
             else:
@@ -207,7 +207,7 @@ class OffencePlayer(Player):
                 if ball.target == None:
                     target = ball.current_position
                 else:
-                    target = ball.target
+                    target = ball.current_position
             else:
                 target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
         else:
@@ -225,10 +225,7 @@ class CenterPlayer(Player):
             if self.team.mode == 'defensive':
                 target = self.get_midpoint()
             elif self.team.mode == 'neutral':
-                if ball.target == None:
-                    target = ball.current_position
-                else:
-                    target = ball.target
+                target = ball.current_position
             else:
                 target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height)) 
         else:
@@ -254,7 +251,7 @@ class DefencePlayer(Player):
             if self.team.mode == 'neutral':
                 target = ball.current_position
             else:
-                target = self.default_pos
+                target = self.default_pos     
         super().move(target)
 
 class Team:
