@@ -5,8 +5,7 @@ import math
 import random
 from typing import Tuple, List
 from scipy.stats import truncnorm
-
-
+import time
 
 '''
 TODO: implement logic of self-confidence, when hitting; risk of the pass, look article
@@ -27,12 +26,24 @@ class Grid:
     def __init__(self, width, height):
         self.width = width
         self.height = height
+        self.cells = [[None for _ in range(height)] for _ in range(width)]
 
+    def update_cells(self, teams):
+        for x in range(self.width):
+            for y in range(self.height):
+                cell_center_x = x + 0.5
+                cell_center_y = y + 0.5
+                closest_player = min(
+                    (player for team in teams for player in team.players),
+                    key=lambda player: np.linalg.norm(np.array(player.current_position) - np.array([cell_center_x, cell_center_y]) )
+                )
+                self.cells[x][y] = closest_player
+        
 class Entity:
     def __init__(self, position, grid):
         self.current_position = position
         self.grid = grid
-        self.speed = 0.08 #2 meters/second, or 7.2 km/h
+        self.speed = 0.008 #2 meters/second, or 7.2 km/h
 
     def move(self, target):
         dx = target[0] - self.current_position[0]
@@ -87,6 +98,51 @@ class Player(Entity):
         self.has_ball_control = False
         self.ball = ball
         #self.target = None
+        self.area = 0
+
+    def calc_area(self):
+        self.area = sum(
+                cell is self
+                for row in self.grid.cells
+                for cell in row
+        )
+        return self.area
+
+
+    def get_maxarea_pos(self, radius=0.008, num_points=10): # need to max team area, not self area
+        original_pos = self.current_position
+        max_area_increase = -1
+        max_area_pos = original_pos
+        area = self.area
+        original_team_area = self.team.total_area()
+        #maybe condider the circle
+        if self.team.name == 'Team B':
+            start_angle = math.radians(90)
+            end_angle = math.radians(270)
+        else:
+            start_angle = math.radians(270)
+            end_angle = math.radians(450)
+
+        angle_step = (end_angle - start_angle) / (num_points - 1)
+        points = []
+
+        for i in range(num_points):
+            angle_rad = start_angle + i * angle_step
+            x = self.current_position[0] +radius * math.cos(angle_rad)
+            y = self.current_position[1] + radius * math.sin(angle_rad)
+            new_pos = (x, y)
+            self.current_position = new_pos
+            self.area = self.calc_area()
+            new_team_area = self.team.total_area()
+            area_increment = new_team_area - original_team_area
+            if area_increment >= max_area_increase:
+                max_area_increase = area_increment
+                max_area_pos = new_pos
+
+        self.current_position = original_pos
+        self.area = area
+        return max_area_pos 
+        
 
     def move(self, target):
 
@@ -98,7 +154,7 @@ class Player(Entity):
                 #self.speed = self.speed*1.2 # add acceleration
                 if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
                 and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
-                    self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
+                    self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0]*10, self.team.opposing_goals[1][1]*10)/10))
                     target = self.get_closest_opposing_player()
                     super().move(target) #rand point in zone? or help in offence?
                 else:
@@ -107,7 +163,7 @@ class Player(Entity):
                         self.hit_ball(self.ball, pass_target.current_position)
                     else: 
                         dist_player_opp = np.linalg.norm(np.array(self.current_position) - np.array(self.get_closest_opposing_player()))
-                        if dist_player_opp > 2.5:
+                        if dist_player_opp > 0.25:
                             target = ((self.team.hit_area[0][1] - self.team.hit_area[0][0])/2 + self.team.hit_area[0][0],\
                                     (self.team.hit_area[1][1] - self.team.hit_area[1][0])/2+self.team.hit_area[1][0])
                             super().move(target)
@@ -128,7 +184,7 @@ class Player(Entity):
                 if self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self]
         if not open_teammates:
             return -1
-        return min(open_teammates, key=lambda player: (player.dist_to_opposing_goals(), np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
+        return min(open_teammates, key=lambda player: (self.dist_to_opposing_goals, np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
 
     def get_closest_opposing_player(self):
         return self.team.opposing_team.players[np.argmin([np.linalg.norm(np.array(self.current_position) - np.array(pos)) \
@@ -141,7 +197,7 @@ class Player(Entity):
         return self == self.team.players[np.argmin([np.linalg.norm(np.array(player.current_position) - np.array(self.ball.current_position)) \
                 for player in self.team.players])]
 
-    def dist_to_opposing_goals(self): #improve
+    def dist_to_opposing_goals(self): 
         return np.linalg.norm(np.array(self.current_position) - np.array([float(self.team.opposing_goals[0]), float(self.team.opposing_goals[1][1]) \
                 - float(self.team.opposing_goals[1][0]) + float(self.team.opposing_goals[1][0])]))
 
@@ -156,9 +212,9 @@ class Player(Entity):
             if dist_player_target != 0:
                 #h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
                 #rewrite in terms of speed!
-                if random.random() < 0.25 or dist_opponent_target < 2.15 or dist_player_target < 2.5:
+                if random.random() < 0.4 or dist_opponent_target < 0.215 or dist_player_target < 0.25: #time for the opposing player to get between the ball and the target > time for the ball to get to the target   
                     return True
-            else: 
+            else:
                 return True
         return False
         
@@ -177,48 +233,73 @@ class GoalKeeper(Player): #if the GoalKeeper is controlling the ball, all player
 
     def move(self, ball, opposing_team):
         if self.has_ball_control:
-            target = (np.random.randint(self.zone[0][0], self.zone[0][1]), np.random.randint(self.zone[1][0], self.zone[1][1]))
+            target = (np.random.randint(self.zone[0][0]*10, self.zone[0][1]*10)/10, np.random.randint(self.zone[1][0]*10, self.zone[1][1]*10)/10)
             pass_to = self.find_nearest_open_teammate()
             if pass_to != -1:
                 self.hit_ball(ball, pass_to.current_position)
             else:
-                self.hit_ball(ball, [50, 50])
+                self.hit_ball(ball, [5, 5])
         else:
-            if self.team.name == 'Team A':
-                target = (min(ball.current_position[0], self.zone[0][1]), min(max(ball.current_position[1], 45), 55)) 
+            if not (self.zone[0][0] <= float(self.ball.current_position[0]) <= self.zone[0][1] \
+                    and self.zone[1][0] <= float(self.ball.current_position[1]) <= self.zone[1][1]):
+                if self.team.name == 'Team A':
+                    target = (min(ball.current_position[0], self.zone[0][1]), min(max(ball.current_position[1], 4.5), 5.5)) 
+                else:
+                    target = (max(ball.current_position[0], self.zone[0][0]), min(max(ball.current_position[1], 4.5), 5.5))
             else:
-                target = (max(ball.current_position[0], self.zone[0][0]), min(max(ball.current_position[1], 45), 55))
+                target = ball.current_position
         super(Player, self).move(target)
 
 class OffencePlayer(Player):
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
-        self.default_pos = position
+        #self.default_pos = position
 
     def move(self, ball, opposing_team):
-        if self.is_ball_in_zone():
-            if self.team.mode == 'defensive':
+        if self.team.mode == 'offensive':
+            target = self.get_maxarea_pos()
+
+        elif self.team.mode == 'defensive':
+            if self.is_ball_in_zone():
                 if self.is_closest_to_ball():
                     target = ball.current_position
                 else:
                     target = self.get_midpoint()
-            elif self.team.mode == 'neutral':
-                if ball.target == None:
-                    target = ball.current_position
-                else:
-                    target = ball.target
             else:
-                target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
+                target = self.get_closest_opposing_player()
+
         else:
-             target = self.default_pos
-        super().move(target) 
+            if self.is_closest_to_ball():
+                target = ball.current_position
+            else:
+                target = self.get_maxarea_pos()
+
+        super().move(target)
+
+    #def move(self, ball, opposing_team):
+        #if self.is_ball_in_zone():
+            #if self.team.mode == 'defensive':
+                #if self.is_closest_to_ball():
+                    #target = ball.current_position
+                #else:
+                    #target = self.get_midpoint()
+            #elif self.team.mode == 'neutral':
+                #if ball.target == None:
+                    #target = ball.current_position
+                #else:
+                    #target = ball.target
+            #else:
+                #target = (np.random.randint(self.team.hit_area[0][0]*10, self.team.hit_area[0][1]*10)/10, np.random.randint(self.team.hit_area[1][0]*10, self.team.hit_area[1][1]*10)/10)
+        #else:
+             #target = (np.random.randint(self.zone[0]*10, self.zone[1]*10)/10, np.random.randint(0, self.grid.height))
+        #super().move(target) 
 
 class CenterPlayer(Player):
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
-        self.default_pos = position
+        #self.default_pos = position
     
     def move(self, ball, opposing_team):
         if self.is_ball_in_zone():
@@ -230,16 +311,16 @@ class CenterPlayer(Player):
                 else:
                     target = ball.target
             else:
-                target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height)) 
+                target = (np.random.randint(self.zone[0]*10, self.zone[1]*10)/10, np.random.randint(0, self.grid.height)) 
         else:
-            target = self.default_pos
+            target = (np.random.randint(self.zone[0]*10, self.zone[1]*10)/10, np.random.randint(0, self.grid.height))
         super().move(target)
 
 class DefencePlayer(Player):
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
-        self.default_pos = position
+        #self.default_pos = position
     
     def move(self, ball, opposing_team):
         if self.is_ball_in_zone():
@@ -254,13 +335,14 @@ class DefencePlayer(Player):
             if self.team.mode == 'neutral':
                 target = ball.current_position
             else:
-                target = self.default_pos
+                target = (np.random.randint(self.zone[0]*10, self.zone[1]*10)/10, np.random.randint(0, self.grid.height))
         super().move(target)
 
 class Team:
     def __init__(self, name, grid, formation, ball, opposing_team=None, opposing_goals=None):
         self.name = name
         self.mode = 'neutral'
+        self.grid = grid
         self.opposing_team = opposing_team
         self.opposing_goals = opposing_goals
         self.hit_area = None
@@ -268,34 +350,35 @@ class Team:
         for i, pos in enumerate(formation):
             if i >= 0 and i <= 3:
                 if self.name == 'Team A':
-                    self.players.append(DefencePlayer(name, self, i, pos, grid, ball, [5.0, 35.0]))
+                    self.players.append(DefencePlayer(name, self, i, pos, grid, ball, [0.5, 3.5]))
                 else:
-                    self.players.append(DefencePlayer(name, self, i, pos, grid, ball, [65.0, 95.0]))
+                    self.players.append(DefencePlayer(name, self, i, pos, grid, ball, [6.5, 9.5]))
             if i >= 4 and i <= 7:
                 if self.name == 'Team A':
-                    self.players.append(CenterPlayer(name, self, i, pos, grid, ball, [35.0, 65.0]))
+                    self.players.append(CenterPlayer(name, self, i, pos, grid, ball, [3.5, 6.5]))
                 else:
-                    self.players.append(CenterPlayer(name, self, i, pos, grid, ball, [35.0, 65.0]))
+                    self.players.append(CenterPlayer(name, self, i, pos, grid, ball, [3.5, 6.5]))
             if i >= 8 and i <= 9:
                 if self.name == 'Team A':
-                    self.players.append(OffencePlayer(name, self, i, pos, grid, ball, [65.0, 95.0]))
+                    self.players.append(OffencePlayer(name, self, i, pos, grid, ball, [6.5, 9.5]))
                 else:
-                    self.players.append(OffencePlayer(name, self, i, pos, grid, ball, [5.0, 35.0]))
+                    self.players.append(OffencePlayer(name, self, i, pos, grid, ball, [0.5, 3.5]))
             if i == 10:
                 if self.name == 'Team A':
-                    self.players.append(GoalKeeper(name, self, i, pos, grid, ball, [[0.0, 5.0], [45.0, 55.0]]))
+                    self.players.append(GoalKeeper(name, self, i, pos, grid, ball, [[0.0, 0.5], [4.5, 5.5]]))
                 else:
-                    self.players.append(GoalKeeper(name, self, i, pos, grid, ball, [[95.0, 100.0], [45.0, 55.0]]))
+                    self.players.append(GoalKeeper(name, self, i, pos, grid, ball, [[9.5, 10.0], [4.5, 5.5]]))
 
     def move(self, grid, ball):
         for player in self.players:
             player.move(ball, self.opposing_team)
+            self.grid.update_cells((self, self.opposing_team))
             if ball.controlled_by == player:
                 ball.current_postion = player.current_position
 
     def update_mode(self, ball):
         for player in self.players:
-            if np.linalg.norm(np.array(player.current_position) - np.array(ball.current_position)) < 0.3:
+            if np.linalg.norm(np.array(player.current_position) - np.array(ball.current_position)) < 0.03:
                 player.has_ball_control = True
                 ball.controlled_by = player
                 ball.target = None
@@ -304,7 +387,7 @@ class Team:
                 player.has_ball_control = False
                 
         for opp_player in self.opposing_team.players:
-            if np.linalg.norm(np.array(opp_player.current_position) - np.array(ball.current_position)) < 0.3:
+            if np.linalg.norm(np.array(opp_player.current_position) - np.array(ball.current_position)) < 0.03:
                 opp_player.has_ball_control = True
                 ball.controlled_by = opp_player
                 ball.target = None
@@ -319,18 +402,23 @@ class Team:
         else:
             self.mode = 'neutral'
 
+    def total_area(self):
+        return sum(player.area for player in self.players)
+
 class SoccerMatch:
     def __init__(self, grid, team1, formation1, team2, formation2):
         self.grid = grid
-        self.ball = Ball(([50.0, 50.0]), self.grid)
+        self.ball = Ball(([5.0, 5.0]), self.grid)
         self.team1, self.team2 = Team(team1, self.grid, formation1, self.ball), Team(team2, self.grid, formation2, self.ball)
         self.team1.opposing_team, self.team2.opposing_team = self.team2, self.team1
-        self.team1.opposing_goals, self.team2.opposing_goals = [100, [45, 55]], [0, [45, 55]] #переписать по-человечески
-        self.team1.hit_area, self.team2.hit_area = [[75, 95], [35, 65]], [[5, 25], [35, 65]] #переписать по-человечески
+        self.team1.opposing_goals, self.team2.opposing_goals = [10, [4.5, 5.5]], [0, [4.5, 5.5]] 
+        self.team1.hit_area, self.team2.hit_area = [[7.5, 9.5], [3.5, 6.5]], [[0.5, 2.5], [3.5, 6.5]]
+        grid.update_cells((self.team1, self.team2))
 
     def simulate(self):
         data = []
         for i in range(framerate * sim_length_sec):
+            #self.grid.update_cells((self.team1, self.team2))
             self.team1.update_mode(self.ball)
             self.team1.move(self.grid, self.ball)
             self.team2.update_mode(self.ball)
@@ -343,13 +431,16 @@ class SoccerMatch:
         df = pd.DataFrame(data, columns=['Period', 'Frame', 'Time [s]', 'Team', 'Player', 'X', 'Y', 'Ball_x', 'Ball_y'])
         return df
 
-df_formations = pd.read_csv('formation442.csv', header=None, names=['area_x', 'area_y', 'x', 'y'], sep=',')
+df_formations = pd.read_csv('formation442_10.csv', header=None, names=['area_x', 'area_y', 'x', 'y'], sep=',')
 df_team_A = df_formations.iloc[:11]
 df_team_B = df_formations.iloc[11:]
 formation1 = list(df_team_A[['x', 'y']].itertuples(index=False, name=None))
 formation2 = list(df_team_B[['x', 'y']].itertuples(index=False, name=None))
 field = Grid(grid_width, grid_height)
 match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
+start = time.time()
 df = match.simulate()
-df.to_csv('soccer_sim.csv', index=False)
- 
+df.to_csv('soccer_sim.csv', index=False) 
+end = time.time()
+
+print(f"Time taken to simulate: {(end - start):.2f} seconds")
