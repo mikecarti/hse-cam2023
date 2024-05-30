@@ -4,15 +4,6 @@ import yaml
 import math
 import random
 from typing import Tuple, List
-from scipy.stats import truncnorm
-
-
-
-'''
-TODO: implement logic of self-confidence, when hitting; risk of the pass, look article
-return default_pos, use them, when the GoalKeeper has the ball, when the ball is outa zone
-ball should not stop, when reaching his target, it should continue moving 
-'''
 
 with open("simulation_config.yaml", "r") as config_file:
     sim_config = yaml.safe_load(config_file)
@@ -24,7 +15,7 @@ framerate = sim_config["framerate"]
 acc = sim_config["acceleration"]
 
 class Grid:
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
         self.width = width
         self.height = height
 
@@ -32,7 +23,7 @@ class Entity:
     def __init__(self, position, grid):
         self.current_position = position
         self.grid = grid
-        self.speed = 0.08 #2 meters/second, or 7.2 km/h
+        self.speed = 0.08 
 
     def move(self, target):
         dx = target[0] - self.current_position[0]
@@ -75,7 +66,7 @@ class Ball(Entity):
     def __init__(self, position, grid):
         super().__init__(position, grid)
         self.controlled_by = None
-        self.speed = self.speed*4 #should add acceleration of 0.002 or some rand acc, with some distr(prob truncnorm)
+        self.speed = self.speed*4 
         self.target = None
 
 class Player(Entity):
@@ -86,21 +77,20 @@ class Player(Entity):
         self.player_id = player_id
         self.has_ball_control = False
         self.ball = ball
-        #self.target = None
 
     def move(self, target):
 
         if self.current_position == self.ball.target and self.ball.controlled_by == None and self.player_id != 10:
-            super().move(self.ball.target)
+            super().move(self.ball.current_position)
 
         else:
             if self.has_ball_control:
-                #self.speed = self.speed*1.2 # add acceleration
                 if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
                 and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
-                    self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0], self.team.opposing_goals[1][1])))
+                    self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0],\
+                            self.team.opposing_goals[1][1])))
                     target = self.get_closest_opposing_player()
-                    super().move(target) #rand point in zone? or help in offence?
+                    super().move(target) 
                 else:
                     dist_player_opp = np.linalg.norm(np.array(self.current_position) - np.array(self.get_closest_opposing_player()))
                     pass_target = self.find_nearest_open_teammate()
@@ -128,11 +118,12 @@ class Player(Entity):
                 if self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self]
         if not open_teammates:
             return -1
-        return min(open_teammates, key=lambda player: (player.dist_to_opposing_goals(), np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
+        return min(open_teammates, key=lambda player: (player.dist_to_opposing_goals(), \
+                np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
 
     def get_closest_opposing_player(self):
         return self.team.opposing_team.players[np.argmin([np.linalg.norm(np.array(self.current_position) - np.array(pos)) \
-                                                for pos in [player.current_position for player in self.team.opposing_team.players]])].current_position
+            for pos in [player.current_position for player in self.team.opposing_team.players]])].current_position
 
     def is_ball_in_zone(self):
         return self.zone[0] <= float(self.ball.current_position[0]) <= self.zone[1]
@@ -141,21 +132,16 @@ class Player(Entity):
         return self == self.team.players[np.argmin([np.linalg.norm(np.array(player.current_position) - np.array(self.ball.current_position)) \
                 for player in self.team.players])]
 
-    def dist_to_opposing_goals(self): #improve
-        return np.linalg.norm(np.array(self.current_position) - np.array([float(self.team.opposing_goals[0]), float(self.team.opposing_goals[1][1]) \
-                - float(self.team.opposing_goals[1][0]) + float(self.team.opposing_goals[1][0])]))
+    def dist_to_opposing_goals(self): 
+        return np.linalg.norm(np.array(self.current_position) - np.array([float(self.team.opposing_goals[0]), \
+                float(self.team.opposing_goals[1][1])- float(self.team.opposing_goals[1][0]) + float(self.team.opposing_goals[1][0])]))
 
     def opponent_between_target(self, target, opposing_team):
         for opp_player in opposing_team.players:
             dist_player_target = np.linalg.norm(np.array(self.current_position) - np.array(target))
             dist_player_opponent = np.linalg.norm(np.array(self.current_position) - np.array(opp_player.current_position))
             dist_opponent_target = np.linalg.norm(np.array(opp_player.current_position) - np.array(target))
-            #Heron's Formula for the area of a triangle --> find height to the side of triangle
-            #The task is actually harder, considering the movement of the target; acceleration, if the ball reaches the zone
-            #s = (dist_player_target + dist_opponent_target + dist_player_opponent) / 2
             if dist_player_target != 0:
-                #h = 2 * np.sqrt(s*(s-dist_player_target) * (s-dist_opponent_target)*(s - dist_player_opponent)) / dist_player_target
-                #rewrite in terms of speed!
                 if random.random() < 0.25 or dist_opponent_target < 2.15 or dist_player_target < 2.5:
                     return True
             else: 
@@ -170,7 +156,7 @@ class Player(Entity):
         midpoint_y = (player_with_ball.current_position[1] + self.get_closest_opposing_player()[1]) / 2
         return (midpoint_x, midpoint_y)
 
-class GoalKeeper(Player): #if the GoalKeeper is controlling the ball, all players should back up 
+class GoalKeeper(Player):  
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
         super().__init__(team_name, team, player_id, position, grid, ball)
         self.zone = zone
@@ -209,7 +195,8 @@ class OffencePlayer(Player):
                 else:
                     target = ball.current_position
             else:
-                target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
+                target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), \
+                        np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
         else:
              target = self.default_pos
         super().move(target) 
@@ -322,8 +309,8 @@ class SoccerMatch:
         self.ball = Ball(([50.0, 50.0]), self.grid)
         self.team1, self.team2 = Team(team1, self.grid, formation1, self.ball), Team(team2, self.grid, formation2, self.ball)
         self.team1.opposing_team, self.team2.opposing_team = self.team2, self.team1
-        self.team1.opposing_goals, self.team2.opposing_goals = [100, [45, 55]], [0, [45, 55]] #переписать по-человечески
-        self.team1.hit_area, self.team2.hit_area = [[75, 95], [35, 65]], [[5, 25], [35, 65]] #переписать по-человечески
+        self.team1.opposing_goals, self.team2.opposing_goals = [100, [45, 55]], [0, [45, 55]] 
+        self.team1.hit_area, self.team2.hit_area = [[75, 95], [35, 65]], [[5, 25], [35, 65]] 
 
     def simulate(self):
         data = []
@@ -340,6 +327,15 @@ class SoccerMatch:
         df = pd.DataFrame(data, columns=['Period', 'Frame', 'Time [s]', 'Team', 'Player', 'X', 'Y', 'Ball_x', 'Ball_y'])
         return df
 
+def get_positions(tick: int) -> np.ndarray:
+    positions = []
+    tick_data = df[df['Frame'] == tick]
+    
+    for _, row in tick_data.iterrows():
+        positions.append([row['X'], row['Y']])
+
+    return np.array(positions)
+
 df_formations = pd.read_csv('formation442.csv', header=None, names=['area_x', 'area_y', 'x', 'y'], sep=',')
 df_team_A = df_formations.iloc[:11]
 df_team_B = df_formations.iloc[11:]
@@ -349,4 +345,4 @@ field = Grid(grid_width, grid_height)
 match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
 df = match.simulate()
 df.to_csv('soccer_sim.csv', index=False)
- 
+
