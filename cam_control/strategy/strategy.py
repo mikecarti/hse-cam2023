@@ -120,26 +120,39 @@ class CameraMovementStrategy(Strategy):
         Returns:
             Tuple[float, float]: Delta yaw and delta pitch.
         """
-        top_aov = cam_pitch - self.vert_aov
-
         cam_x, cam_y = cam_pos
-        init_x, init_y = init_pos
         target_x, target_y = target_pos
 
-        init_vec = np.array((init_x - cam_x, init_y - cam_y))
-        target_vec = np.array((target_x - cam_x, target_y - cam_y))
+        # Calculate vectors from camera to initial and target positions
+        init_vec = np.array([init_pos[0] - cam_x, init_pos[1] - cam_y])
+        target_vec = np.array([target_x - cam_x, target_y - cam_y])
 
+        # Calculate angles of these vectors
         init_vec_angle = self._vector_angle(init_vec)
         target_vec_angle = self._vector_angle(target_vec)
 
-        tan_pitch = norm(target_vec) / norm(cam_height)
-        raw_pitch = np.degrees(atan(tan_pitch)) % 360.0
-        pitch = 90 - raw_pitch
-
+        # Calculate delta yaw
         delta_yaw = target_vec_angle - init_vec_angle
-        delta_pitch = pitch - top_aov
 
-        logger.debug(f"raw_pitch: {raw_pitch}, corrected_pitch: {pitch}, delta_pitch: {delta_pitch}")
+        # Calculate the horizontal distance and height difference for pitch
+        horizontal_distance = np.linalg.norm(target_vec)
+        height_difference = cam_height  # Assuming the camera's height is the height difference
+
+        # Calculate the target pitch angle incorporating vertical AOV
+        target_pitch_rad = np.arctan2(height_difference, horizontal_distance)
+        target_pitch_deg = np.degrees(target_pitch_rad)
+
+        # Adjust the target pitch with the vertical angle of view
+        corrected_target_pitch = target_pitch_deg + (self.vert_aov / 2)
+
+        # Calculate the delta pitch
+        delta_pitch = corrected_target_pitch - cam_pitch
+
+        # Logging for debugging
+        logger.debug(f"cam_pos: {cam_pos}, target_pos: {target_pos}")
+        logger.debug(f"horizontal_distance: {horizontal_distance}, height_difference: {height_difference}")
+        logger.debug(f"target_pitch_rad: {target_pitch_rad}, target_pitch_deg: {target_pitch_deg}")
+        logger.debug(f"corrected_target_pitch: {corrected_target_pitch}, delta_pitch: {delta_pitch}")
 
         return delta_yaw, delta_pitch
 

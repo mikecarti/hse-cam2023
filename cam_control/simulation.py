@@ -20,6 +20,7 @@ from plot import Plotter
 from loguru import logger
 from time import sleep
 from mock_player_sim import MockPlayerSim
+from player_sim import soccer_sim
 
 
 class CamSimulation:
@@ -37,7 +38,7 @@ class CamSimulation:
         logger.debug(f"Cam pos: {self.cam_pos}, focal length: {self.focal_length}")
 
         self.strategy = FollowerStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor,
-                                         cam_aim_func=calc_princ_axis_intersection, eps=CLOSE_ENOUGH_EPS)
+                                         cam_aim_func=calc_fov_middle, eps=CLOSE_ENOUGH_EPS)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc, sleep_each_iter=SLEEP_EACH_ITER,
                                aim_radius=CLOSE_ENOUGH_EPS)
         self.player_detector = PlayerDetector()
