@@ -1,7 +1,9 @@
 import pandas as pd
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import yaml
+import time
 
 INTERVAL = 1000/25
 
@@ -21,43 +23,29 @@ scatters = [ax.scatter([], [], color=('red' if i < 11 else 'blue')) for i in ran
 ball_scatter = ax.scatter([], [], color='black')
 
 def animate(frame_number: int):
-    """
-    This function animates the scatter plot of player positions for each frame.
+    ax.clear()
+    frame_data = df[df['Frame'] == frame_number]
 
-    :param frame_number: The frame number to be animated.
-    :type frame_number: int
-    """
+    team1_data = frame_data[frame_data['Team'] == 'Team A']
+    ax.scatter(team1_data['X'], team1_data['Y'], color='blue', label='Team 1')
 
-    for i, scatter in enumerate(scatters, start=1):
-        player = df[df['Frame'] == frame_number][['Player{}_x'.format(i), 'Player{}_y'.format(i)]]
-        scatter.set_offsets(player.values)
+    team2_data = frame_data[frame_data['Team'] == 'Team B']
+    ax.scatter(team2_data['X'], team2_data['Y'], color='red', label='Team 2')
 
-    ball = df[df['Frame'] == frame_number][['Ball_x', 'Ball_y']]
-    ball_scatter.set_offsets(ball.values)
+    ax.scatter(team2_data['Ball_x'].values[0], team2_data['Ball_y'].values[0], color='black', label='Ball')
+    ax.legend()
 
-   
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_title(f'Player positions in frame {frame_number}')
+
+    ax.set_xlim([0, grid_width])
+    ax.set_ylim([0, grid_height])   
+
+start = time.time()
 ani = animation.FuncAnimation(fig, animate, frames=range(df['Frame'].min(), df['Frame'].max() + 1), interval=INTERVAL)
-"""
-FuncAnimation creates an animation by repeatedly calling a function animate.
-
-:param fig: The figure object that is used to get draw events.
-:type fig: Figure
-:param animate: The function to call at each frame.
-:type animate: callable
-:param frames: Source of data to pass function and each frame of the animation
-:type frames: int
-:param interval: Delay between frames in milliseconds.
-:type interval: int
-"""
-
 ani.save('soccer_match_simulation.mp4', writer='ffmpeg')
-"""
-Saves a animation to a file.
-
-:param filename: The output filename.
-:type filename: str
-:param writer: The writer to use. 
-:type writer: str
-"""
-
 plt.close(fig)
+end = time.time()
+
+print(f"Time taken to animate: {(end - start):.2f} seconds")

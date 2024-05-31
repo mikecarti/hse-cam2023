@@ -8,6 +8,7 @@ import yaml
 
 import warnings 
 warnings.filterwarnings("ignore")
+
 with open("heatmap_config.yaml", "r") as config_file:
     heatmap_config = yaml.safe_load(config_file)
 
@@ -58,6 +59,19 @@ data_away = data_away[columns_away_reordered]
 data_away.columns = ['Period', 'Frame', 'Time [s]'] + [f"Player{i}_{j}" for i in range(12, 23) for j in ('x', 'y')] + ['Ball_x', 'Ball_y']
 data = data_home.merge(data_away, on=['Period', 'Frame', 'Time [s]'])
 
+for i in range(1, 23):
+    data[f'Player{i}_x'] = pd.to_numeric(data[f'Player{i}_x'], errors='coerce')
+    data[f'Player{i}_y'] = pd.to_numeric(data[f'Player{i}_y'], errors='coerce')
+    data[f'Player{i}_x'] = data[f'Player{i}_x'] * 100
+    data[f'Player{i}_y'] = data[f'Player{i}_y'] * 100
+
+data['Ball_x'] = pd.to_numeric(data['Ball_x'], errors='coerce')
+data['Ball_x'] = pd.to_numeric(data['Ball_x'], errors='coerce')
+data['Ball_x'] = data['Ball_x'] * 100
+data['Ball_y'] = data['Ball_y'] * 100
+
+data.to_csv('clear_data.csv', index=False)
+
 def get_player_prob_matrix(data: pd.DataFrame, player_num: int, period: int):
     """
     Calculate the probability matrix for a player's position on the grid.
@@ -73,8 +87,8 @@ def get_player_prob_matrix(data: pd.DataFrame, player_num: int, period: int):
     """
 
     data_period = data[data['Period'] == period]
-    x = data_period[f'Player{player_num}_x'].values*width
-    y = data_period[f'Player{player_num}_y'].values*height
+    x = data_period[f'Player{player_num}_x'].values
+    y = data_period[f'Player{player_num}_y'].values
     hist, xedges, yedges = np.histogram2d(x, y, bins=[width, height], range=[[0, width], [0, height]])
     prob_matrix = hist / np.sum(hist)
     return np.array(prob_matrix)
@@ -100,7 +114,7 @@ def assign_players_to_areas(data: pd.DataFrame, period: int):
         player_areas.append(np.unravel_index(np.argmax(max_prob_area), max_prob_area.shape))
     return player_areas
 
-def get_starting_positions(data, period):
+def get_starting_positions(data, period: int):
     """
     Get the starting positions for each player.
 

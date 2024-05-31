@@ -4,6 +4,7 @@ coordinate_transform/data/yantar-230722-02_track.csv
 coordinate_transform/transformation.png
 simulation/soccer_match_simulation.mp4
 simulation/soccer_sim.csv
+simulation/heatmaps/clear_data.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
