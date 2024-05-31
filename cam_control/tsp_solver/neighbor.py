@@ -10,6 +10,7 @@ class NeighborSolver:
         self.visited_agents = np.zeros(n_observed_agents)
         self.eps = eps
 
+
     def determine_next_position(self, cur_pos: Point2D, agents: np.ndarray[Point2D]) -> Point2D:
         """
         Args:

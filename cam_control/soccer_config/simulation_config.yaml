@@ -1,0 +1,7 @@
+height: 100
+width: 100
+simulation_length_seconds: 60
+framerate: 25
+acceleration: 0.002
+
+

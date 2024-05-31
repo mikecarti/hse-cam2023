@@ -1,7 +1,6 @@
 import os
 import sys
 
-from cam_control.cam_aim import calc_fov_middle
 
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
@@ -12,6 +11,7 @@ sys.path.append(cam_sim)
 from cam_control.metric import Metric
 from cam_control.strategy.follower import FollowerStrategy
 from cam_control.tsp_solver.neighbor import NeighborSolver
+from cam_control.cam_aim import calc_fov_middle, calc_princ_axis_intersection
 from player_detect import PlayerDetector
 # from cam_control.strategy.trajectory import TrajectoryStrategy
 # from strategy.strategy import CameraMovementStrategy
@@ -20,6 +20,7 @@ from plot import Plotter
 from loguru import logger
 from time import sleep
 from mock_player_sim import MockPlayerSim
+from player_sim import soccer_sim
 
 
 class CamSimulation:
