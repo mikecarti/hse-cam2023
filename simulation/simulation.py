@@ -3,7 +3,9 @@ import numpy as np
 import yaml
 import math
 import random
+from scipy.stats import truncnorm 
 from typing import Tuple, List
+import time
 
 with open("simulation_config.yaml", "r") as config_file:
     sim_config = yaml.safe_load(config_file)
@@ -12,7 +14,6 @@ grid_height = sim_config["height"]
 grid_width = sim_config["width"]
 sim_length_sec = sim_config["simulation_length_seconds"]
 framerate = sim_config["framerate"]
-acc = sim_config["acceleration"]
 
 class Grid:
     def __init__(self, width: int, height: int):
@@ -23,7 +24,15 @@ class Entity:
     def __init__(self, position, grid):
         self.current_position = position
         self.grid = grid
-        self.speed = 0.08 
+        self.speed = self.generate_speed() 
+
+    def get_truncated_normal(self, mean=0, sd=1, low=0, upp=10):
+        return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+
+    def generate_speed(self):
+        speed_distribution = self.get_truncated_normal(mean=0.08, sd=0.03, low=0, upp=1)
+        speed = speed_distribution.rvs()
+        return speed
 
     def move(self, target):
         dx = target[0] - self.current_position[0]
@@ -66,7 +75,7 @@ class Ball(Entity):
     def __init__(self, position, grid):
         super().__init__(position, grid)
         self.controlled_by = None
-        self.speed = self.speed*4 
+        self.speed = self.generate_speed() * 4
         self.target = None
 
 class Player(Entity):
@@ -79,12 +88,13 @@ class Player(Entity):
         self.ball = ball
 
     def move(self, target):
-
         if self.current_position == self.ball.target and self.ball.controlled_by == None and self.player_id != 10:
+            self.speed = self.speed*1.1
             super().move(self.ball.current_position)
 
         else:
             if self.has_ball_control:
+                self.speed = self.generate_speed()*1.1
                 if self.current_position[0] >= self.team.hit_area[0][0] and self.current_position[0] <= self.team.hit_area[0][1] \
                 and self.current_position[1] >= self.team.hit_area[1][0] and self.current_position[1] <= self.team.hit_area[1][1]:
                     self.hit_ball(self.ball, (self.team.opposing_goals[0], np.random.randint(self.team.opposing_goals[1][0],\
@@ -93,7 +103,7 @@ class Player(Entity):
                     super().move(target) 
                 else:
                     dist_player_opp = np.linalg.norm(np.array(self.current_position) - np.array(self.get_closest_opposing_player()))
-                    pass_target = self.find_nearest_open_teammate()
+                    pass_target = self.find_open_teammate()
                     if dist_player_opp > 3:
                         target = ((self.team.hit_area[0][1] - self.team.hit_area[0][0])/2 + self.team.hit_area[0][0],\
                                     (self.team.hit_area[1][1] - self.team.hit_area[1][0])/2+self.team.hit_area[1][0])
@@ -105,6 +115,7 @@ class Player(Entity):
                             target = self.get_closest_opposing_player()
                             super().move_opposite(target)
             else:
+                self.speed = self.generate_speed()
                 super().move(target)
         
     def hit_ball(self, ball, target):
@@ -112,13 +123,21 @@ class Player(Entity):
         ball.target = target
         ball.move(ball.target)
         self.has_ball_control = False
-        
-    def find_nearest_open_teammate(self):
+
+    def find_open_teammate(self):
         open_teammates = [player for player in self.team.players\
                 if self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self]
         if not open_teammates:
             return -1
         return min(open_teammates, key=lambda player: (player.dist_to_opposing_goals(), \
+                np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
+
+    def find_closeset_open_teammate(self):
+        open_teammates = [player for player in self.team.players\
+                if self.opponent_between_target(player.current_position, self.team.opposing_team) == False and player != self]
+        if not open_teammates:
+            return -1
+        return max(open_teammates, key=lambda player: (player.dist_to_opposing_goals(), \
                 np.linalg.norm(np.array(self.current_position) - np.array(player.current_position))))
 
     def get_closest_opposing_player(self):
@@ -151,10 +170,13 @@ class Player(Entity):
     def get_midpoint(self):
         player_with_ball = self.ball.controlled_by
         if player_with_ball is None:
-            return None
-        midpoint_x = (player_with_ball.current_position[0] + self.get_closest_opposing_player()[0]) / 2
-        midpoint_y = (player_with_ball.current_position[1] + self.get_closest_opposing_player()[1]) / 2
-        return (midpoint_x, midpoint_y)
+            midpoint_x = (self.ball.current_position[0] + self.get_closest_opposing_player()[0]) / 2
+            midpoint_y = (self.ball.current_position[1] + self.get_closest_opposing_player()[1]) / 2
+            return (midpoint_x, midpoint_y)
+        else:
+            midpoint_x = (player_with_ball.current_position[0] + self.get_closest_opposing_player()[0]) / 2
+            midpoint_y = (player_with_ball.current_position[1] + self.get_closest_opposing_player()[1]) / 2
+            return (midpoint_x, midpoint_y)
 
 class GoalKeeper(Player):  
     def __init__(self, team_name, team, player_id, position, grid, ball, zone):
@@ -164,7 +186,7 @@ class GoalKeeper(Player):
     def move(self, ball, opposing_team):
         if self.has_ball_control:
             target = (np.random.randint(self.zone[0][0], self.zone[0][1]), np.random.randint(self.zone[1][0], self.zone[1][1]))
-            pass_to = self.find_nearest_open_teammate()
+            pass_to = self.find_closeset_open_teammate()
             if pass_to != -1:
                 self.hit_ball(ball, pass_to.current_position)
             else:
@@ -190,15 +212,16 @@ class OffencePlayer(Player):
                 else:
                     target = self.get_midpoint()
             elif self.team.mode == 'neutral':
-                if ball.target == None:
-                    target = ball.current_position
-                else:
-                    target = ball.current_position
+                target = ball.current_position
             else:
                 target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), \
                         np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
         else:
-             target = self.default_pos
+            if self.team.mode == 'offensive' or self.team.mode == 'neutral':
+                target = (np.random.randint(self.team.hit_area[0][0], self.team.hit_area[0][1]), \
+                        np.random.randint(self.team.hit_area[1][0], self.team.hit_area[1][1]))
+            else:
+                target = self.default_pos
         super().move(target) 
 
 class CenterPlayer(Player):
@@ -216,7 +239,15 @@ class CenterPlayer(Player):
             else:
                 target = (np.random.randint(self.zone[0], self.zone[1]), np.random.randint(0, self.grid.height)) 
         else:
-            target = self.default_pos
+            if self.team.mode == 'defensive':
+                target = self.get_midpoint()
+            elif self.team.mode == 'neutral':
+                if self.is_closest_to_ball():
+                    target = ball.current_position
+                else:
+                    target = self.get_midpoint()
+            else:
+                target = self.default_pos
         super().move(target)
 
 class DefencePlayer(Player):
@@ -236,7 +267,12 @@ class DefencePlayer(Player):
                 target = ball.current_position
         else:
             if self.team.mode == 'neutral':
-                target = ball.current_position
+                if self.is_closest_to_ball():
+                    target = ball.current_position
+                else:
+                    target = self.default_pos
+            elif self.team.mode == 'defensive':
+                target = self.get_midpoint()
             else:
                 target = self.default_pos     
         super().move(target)
@@ -343,6 +379,10 @@ formation1 = list(df_team_A[['x', 'y']].itertuples(index=False, name=None))
 formation2 = list(df_team_B[['x', 'y']].itertuples(index=False, name=None))
 field = Grid(grid_width, grid_height)
 match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
+start = time.time()
 df = match.simulate()
 df.to_csv('soccer_sim.csv', index=False)
+end = time.time()
+
+print(f"Time taken to simulate: {(end - start):.2f} seconds")
 
