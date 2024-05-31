@@ -360,8 +360,9 @@ class SoccerMatch:
 class SoccerSimulation:
     def __init__(self, df):
         self.df = df
+        self.n_agents = 22
 
-    def get_positions(self, tick: int) -> np.ndarray:
+    def get_positions(self, tick: int, *args) -> np.ndarray:
         positions = []
         tick_data = self.df[self.df['Frame'] == tick]
 

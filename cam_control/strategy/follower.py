@@ -19,6 +19,12 @@ class FollowerStrategy(CameraMovementStrategy):
         self.intermediate_target_pos = [0, 0]
         self.target_pos = [0, 0]
 
+        # Given fps = 25, and speed is in meters
+        # then camera should be able to traverse a field in 5 seconds
+        # therefore if a field length is 100, it is 20 meters in 1 second,
+        # that is 0.8 meters in 1/25 seconds
+        self.speed_meters_per_tick = 0.8
+
     def move(self, fov_corners: List[Point2D], yaw: float, pitch: float, to: Point2D) \
             -> Tuple[float, float]:
         """
@@ -53,8 +59,9 @@ class FollowerStrategy(CameraMovementStrategy):
     def _plan_gradual_movement(self, cur_pos: Point2D, target_pos: Point2D) -> Queue:
         self.gradual_movement.empty()
         distance = norm(cur_pos - target_pos)
-        n_iterations = distance / self.speed_factor
+        n_iterations = distance / self.speed_meters_per_tick
         n_steps = int(max(n_iterations, 2))
+        logger.debug(f"traversing distance {distance} meters in # of iterations: {n_steps} and # of seconds: {n_steps / 25}")
 
         lin_space = np.linspace(cur_pos, target_pos, n_steps)
         self.final_target = target_pos

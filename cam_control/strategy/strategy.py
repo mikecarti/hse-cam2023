@@ -55,8 +55,6 @@ class CameraMovementStrategy(Strategy):
                  focal_length: float, image_sensor: Dict, eps: float):
         super().__init__(field_size=field_size, field_loc=field_loc)
         self.step = -1
-        self.n_intermediate_steps = 20
-        self.speed_factor = 2
         self.eps = eps
 
         self.gradual_movement = Queue()

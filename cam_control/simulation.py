@@ -28,7 +28,7 @@ class CamSimulation:
         self.fov_calculator = FOVCalculator()
 
         CLOSE_ENOUGH_EPS = 2
-        SLEEP_EACH_ITER = 0.05
+        SLEEP_EACH_ITER = 0.000001
 
         field_size = self.fov_calculator.get_field_size()
         field_loc = self.fov_calculator.get_field_loc()
@@ -43,6 +43,7 @@ class CamSimulation:
                                aim_radius=CLOSE_ENOUGH_EPS)
         self.player_detector = PlayerDetector()
         self.player_sim = MockPlayerSim(field_size, field_loc, random_seed=random_seed)
+        self.player_sim = soccer_sim
         self.solver = NeighborSolver(n_observed_agents=self.player_sim.n_agents, eps=CLOSE_ENOUGH_EPS)
         self.metric = Metric(n_players=self.player_sim.n_agents)
 
@@ -66,7 +67,7 @@ class CamSimulation:
                 "zoom": zoom
             }
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            observed_objects_positions = self.player_sim.get_positions(time, randomize=True)
+            observed_objects_positions = self.player_sim.get_positions(time, True)
             cur_target = self.solver.determine_next_position(self.strategy.intermediate_target_pos,
                                                              observed_objects_positions)
 
