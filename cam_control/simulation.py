@@ -23,7 +23,7 @@ from player_sim import soccer_sim
 
 
 class CamSimulation:
-    def __init__(self, random_seed=42, start_from_frame=0):
+    def __init__(self, random_seed=42, start_from_frame=0, plot=True):
         self.fov_calculator = FOVCalculator()
 
         CLOSE_ENOUGH_EPS = 2
@@ -46,6 +46,7 @@ class CamSimulation:
         self.solver = NeighborSolver(n_observed_agents=self.player_sim.n_agents, eps=CLOSE_ENOUGH_EPS)
         self.metric = Metric(n_players=self.player_sim.n_agents)
 
+        self.to_plot = plot
         self.time = start_from_frame
         self.log_angles = True
         self.log_players = True
@@ -75,10 +76,11 @@ class CamSimulation:
                 observed_objects_positions, fov_points
             )
 
-            self.plotter.plot(
-                fov_points, observed_objects_positions, self.solver.visited_agents, camera_properties=camera_properties,
-                cur_pos=calc_fov_middle(fov_points), target_pos=self.strategy.final_target,
-            )
+            if self.to_plot:
+                self.plotter.plot(
+                    fov_points, observed_objects_positions, self.solver.visited_agents, camera_properties=camera_properties,
+                    cur_pos=calc_fov_middle(fov_points), target_pos=self.strategy.final_target,
+                )
 
             self._log(camera_properties, players_inside_fov)
             self.metric.count_iteration()

@@ -17,14 +17,15 @@ class Plotter:
         self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
 
-        self.ax.scatter(*cam_pos[:2], color='red', marker="x")
+        # Plot camera position
+        self.ax.scatter(*cam_pos[:2], color='red', marker="x", label="Camera Position")
         self.aim_radius = aim_radius
         self.field_size = field_size  # (width, height)
         self.field_loc = field_loc  # (x, y)
         self.plot_field()
         self.fov_calculator = FOVCalculator()
         self.ax.set_aspect('equal')
-        if trajectory:
+        if trajectory is not None:
             self.plot_points(trajectory, color="r", leave_forever=True)  # trajectory
 
         self.legend = None
@@ -35,6 +36,17 @@ class Plotter:
         if FULLSCREEN:
             mng = plt.get_current_fig_manager()
             mng.full_screen_toggle()
+
+        # Add legend
+        self.ax.scatter([], [], color='blue', marker="o", label="Unvisited Agent")
+        self.ax.scatter([], [], color='black', marker="o", label="Visited Agent")
+        self.ax.scatter([], [], edgecolor='yellow', facecolor='none', marker="o", label="Camera Target")
+        self.ax.scatter([], [], edgecolor='red', facecolor='none', marker="o", label="Camera Center of FOV")
+        self.ax.plot([], [], color='blue', label="FOV Side")
+        self.ax.scatter([], [], color='red', marker=".", label="FOV Corner")
+        self.ax.plot([], [], color='green', label="Field Corner")
+
+        self.legend = self.ax.legend(loc='upper right')
 
     def plot(self, fov_points: np.ndarray, observed_objects_positions: np.ndarray, visited_objects: np.array,
              camera_properties: Dict, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]) -> None:
@@ -87,9 +99,9 @@ class Plotter:
             for line in line_group:
                 line.remove()
 
-        # Remove the legend if it exists
-        if self.legend:
-            self.legend.remove()
+        # # Remove the legend if it exists
+        # if self.legend:
+        #     self.legend.remove()
 
         # Clear the lists
         self.dots.clear()

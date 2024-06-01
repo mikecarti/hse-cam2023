@@ -18,6 +18,8 @@ class FollowerStrategy(CameraMovementStrategy):
         self.cam_aim = cam_aim_func
         self.intermediate_target_pos = [0, 0]
         self.target_pos = [0, 0]
+        self.wait_on_every_player_frames = 5
+        self.idle = False
 
         # Given fps = 25, and speed is in meters
         # then camera should be able to traverse a field in 5 seconds
@@ -44,7 +46,18 @@ class FollowerStrategy(CameraMovementStrategy):
         logger.debug(f"Current position of camera aim: {cur_pos}")
         if self.is_target_reached(cur_pos):
             logger.warning(f"Follower strategy finished traversing at position: {self.target_pos}")
-        #     return 0, 0
+            if not self.idle:
+                self.idle = True
+                self.remaining_frames_idle = self.wait_on_every_player_frames
+            elif self.idle:
+                self.remaining_frames_idle -= 1
+
+                if self.remaining_frames_idle > 0:
+                    return 0, 0
+                elif self.remaining_frames_idle == 0:
+                    self.idle = False
+                else:
+                    logger.error(f"remaining frames idle: {self.remaining_frames_idle}")
 
         self.intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)
 

@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     for i in range(N):
         log.info(f"Iteration {i + 1} of {N}")
-        sim = CamSimulation(random_seed=i, start_from_frame=start_from_frame)
+        sim = CamSimulation(random_seed=i, start_from_frame=start_from_frame, plot=False)
         score = sim.simulate()
         scores.append(score)
         start_from_frame += score
