@@ -32,10 +32,20 @@ for finding the shortest path on a graph.
 # Simulation
 Simulation module is concerned with testing the hypotheses and analyzing the best strategies for solving a problem.
 
+# Evaluation results for KNN Solver:
+Statistics for time in ticks (frames), given that 1 second equate to 25 ticks.
+- Stats: count    100.00000 (Number of experiments)
+- mean     408.56000
+- std       46.73919
+- min      305.00000
+- 25%      375.75000
+- 50%      412.50000
+- 75%      442.25000
+- max      549.00000
+
 ## Current bugs: 
 #### cam_control
 - Cam pitch shaking (players are not tracked immediately)
-- If players stand in a line, tracking works poorly (stuck or skipping players)
 
 ## TODO:
 - No camera physics (enertion, angle speed)

@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 current_dir = os.getcwd()
 cam_dir = current_dir + "/cam_control"
 sys.path.append(cam_dir)
@@ -24,10 +23,10 @@ from player_sim import soccer_sim
 
 
 class CamSimulation:
-    def __init__(self, random_seed=42):
+    def __init__(self, random_seed=42, start_from_frame=0):
         self.fov_calculator = FOVCalculator()
 
-        CLOSE_ENOUGH_EPS = 4
+        CLOSE_ENOUGH_EPS = 2
         SLEEP_EACH_ITER = 0.000001
 
         field_size = self.fov_calculator.get_field_size()
@@ -47,12 +46,12 @@ class CamSimulation:
         self.solver = NeighborSolver(n_observed_agents=self.player_sim.n_agents, eps=CLOSE_ENOUGH_EPS)
         self.metric = Metric(n_players=self.player_sim.n_agents)
 
+        self.time = start_from_frame
         self.log_angles = True
         self.log_players = True
         self.field_size = field_size
 
     def simulate(self):
-        time = 0
         yaw, pitch = self.fov_calculator.get_rotation_coords()
         delta_yaw, delta_pitch = 0, 0
         zoom = 1
@@ -67,7 +66,7 @@ class CamSimulation:
                 "zoom": zoom
             }
             fov_points = self.fov_calculator.get_points_of_fov(camera_properties)[0]
-            observed_objects_positions = self.player_sim.get_positions(time, True)
+            observed_objects_positions = self.player_sim.get_positions(self.time, True)
             cur_target = self.solver.determine_next_position(self.strategy.intermediate_target_pos,
                                                              observed_objects_positions)
 
@@ -86,7 +85,7 @@ class CamSimulation:
             if self.solver.get_number_of_unvisited_agents() == 0:
                 logger.success(f"Simulation finished on angle position {yaw, pitch}")
                 break
-            time += 1
+            self.time += 1
         return self.metric.get_score()
 
     def _log(self, camera_properties, players_inside_fov):
@@ -101,5 +100,7 @@ class CamSimulation:
 
 
 if __name__ == '__main__':
+    logger.remove()
+    logger.add(sys.stderr, level="INFO")
     cam_simulation = CamSimulation()
     cam_simulation.simulate()

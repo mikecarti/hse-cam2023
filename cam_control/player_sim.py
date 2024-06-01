@@ -372,14 +372,14 @@ class SoccerSimulation:
         return np.array(positions)
 
 
-df_formations = pd.read_csv('cam_control/soccer_config/formation442.csv', header=None, names=['area_x', 'area_y', 'x', 'y'], sep=',')
-df_team_A = df_formations.iloc[:11]
-df_team_B = df_formations.iloc[11:]
-formation1 = list(df_team_A[['x', 'y']].itertuples(index=False, name=None))
-formation2 = list(df_team_B[['x', 'y']].itertuples(index=False, name=None))
-field = Grid(grid_width, grid_height)
-match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
-df = match.simulate()
-df.to_csv('soccer_sim.csv', index=False)
+# df_formations = pd.read_csv('cam_control/soccer_config/formation442.csv', header=None, names=['area_x', 'area_y', 'x', 'y'], sep=',')
+# df_team_A = df_formations.iloc[:11]
+# df_team_B = df_formations.iloc[11:]
+# formation1 = list(df_team_A[['x', 'y']].itertuples(index=False, name=None))
+# formation2 = list(df_team_B[['x', 'y']].itertuples(index=False, name=None))
+# field = Grid(grid_width, grid_height)
+# match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
+# df = match.simulate()
+# df.to_csv('soccer_sim.csv', index=False)
 
-soccer_sim = SoccerSimulation(df)
+soccer_sim = SoccerSimulation(pd.read_csv('cam_control/soccer_config/soccer_sim.csv'))
