@@ -30,7 +30,7 @@ class Entity:
         return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
     def generate_speed(self):
-        speed_distribution = self.get_truncated_normal(mean=0.08, sd=0.03, low=0, upp=1)
+        speed_distribution = self.get_truncated_normal(mean=0.085, sd=0.016, low=0, upp=1)
         speed = speed_distribution.rvs()
         return speed
 
@@ -383,13 +383,10 @@ df_team_A = df_formations.iloc[:11]
 df_team_B = df_formations.iloc[11:]
 formation1 = list(df_team_A[['x', 'y']].itertuples(index=False, name=None))
 formation2 = list(df_team_B[['x', 'y']].itertuples(index=False, name=None))
-field = Grid(grid_width, grid_height)
-match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
-start = time.time()
-df = match.simulate()
-df.to_csv('soccer_sim.csv', index=False)
-end = time.time()
 
-print(f"Time taken to simulate: {(end - start):.2f} seconds")
-
-soccer_sim = SoccerSimulation(df)
+for i in range(1, 21):
+    field = Grid(grid_width, grid_height)
+    match = SoccerMatch(field, 'Team A', formation1, 'Team B', formation2)
+    df = match.simulate()
+    df.to_csv(f'soccer_simulations/soccer_sim_{i}.csv', index=False)
+    #soccer_sim = SoccerSimulation(df)
