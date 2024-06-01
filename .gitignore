@@ -5,6 +5,8 @@ coordinate_transform/transformation.png
 simulation/soccer_match_simulation.mp4
 simulation/soccer_sim.csv
 simulation/heatmaps/clear_data.csv
+simulation/soccer_simulations
+simulation/results/soccer_sim_long.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
