@@ -11,12 +11,13 @@ FULLSCREEN = False
 
 class Plotter:
 
-    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float],
-                 sleep_each_iter: float, trajectory: np.ndarray = None, aim_radius: float = 1):
+    def __init__(self, field_size: Tuple[float, float], field_loc: Tuple[float, float], sleep_each_iter: float,
+                 trajectory: np.ndarray = None, aim_radius: float = 1, cam_pos: np.ndarray = None):
         self.vis_point_plot = None
         self.unvis_point_plot = None
         self.fig, self.ax = plt.subplots()
 
+        self.ax.scatter(*cam_pos[:2], color='red', marker="x")
         self.aim_radius = aim_radius
         self.field_size = field_size  # (width, height)
         self.field_loc = field_loc  # (x, y)
@@ -58,7 +59,7 @@ class Plotter:
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.axis('scaled')
-        self.ax.set_xlim([-20, 150])
+        self.ax.set_xlim([-40, 150])
         self.ax.set_ylim([-20, 150])
         plt.pause(self.pause_time)
 

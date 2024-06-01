@@ -68,4 +68,4 @@ class NeighborSolver:
             bool: True if positions are close enough, False otherwise.
         """
         dist = norm(np.array(pos_1) - np.array(pos_2))
-        return dist < self.eps
+        return dist <= self.eps

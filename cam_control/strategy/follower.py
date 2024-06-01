@@ -44,7 +44,7 @@ class FollowerStrategy(CameraMovementStrategy):
         logger.debug(f"Current position of camera aim: {cur_pos}")
         if self.is_target_reached(cur_pos):
             logger.warning(f"Follower strategy finished traversing at position: {self.target_pos}")
-            return 0, 0
+        #     return 0, 0
 
         self.intermediate_target_pos = self._get_next_intermediate_target(cur_pos, self.target_pos)
 

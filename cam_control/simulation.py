@@ -27,7 +27,7 @@ class CamSimulation:
     def __init__(self, random_seed=42):
         self.fov_calculator = FOVCalculator()
 
-        CLOSE_ENOUGH_EPS = 2
+        CLOSE_ENOUGH_EPS = 4
         SLEEP_EACH_ITER = 0.000001
 
         field_size = self.fov_calculator.get_field_size()
@@ -40,7 +40,7 @@ class CamSimulation:
         self.strategy = FollowerStrategy(field_size, field_loc, self.cam_pos, self.focal_length, image_sensor,
                                          cam_aim_func=calc_fov_middle, eps=CLOSE_ENOUGH_EPS)
         self.plotter = Plotter(field_size=field_size, field_loc=field_loc, sleep_each_iter=SLEEP_EACH_ITER,
-                               aim_radius=CLOSE_ENOUGH_EPS)
+                               aim_radius=CLOSE_ENOUGH_EPS, cam_pos=self.cam_pos)
         self.player_detector = PlayerDetector()
         self.player_sim = MockPlayerSim(field_size, field_loc, random_seed=random_seed)
         self.player_sim = soccer_sim
