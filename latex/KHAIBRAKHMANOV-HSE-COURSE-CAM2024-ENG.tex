@@ -1,0 +1,99 @@
+%% Преамбула TeX-файла
+
+% 1. Стиль и язык
+\documentclass[utf8x]{G7-32} % Стиль (по умолчанию будет 14pt)
+%\documentclass{book} % Стиль (по умолчанию будет 14pt)
+\usepackage[T2A]{fontenc}
+\usepackage[russian]{babel}
+
+% Остальные стандартные настройки убраны в preamble.inc.tex.
+
+\usepackage{pdflscape}
+\usepackage{booktabs}
+\usepackage{svg}
+\usepackage{longtable}
+\usepackage{pdflscape}
+\usepackage{lscape}
+\usepackage{cancel}
+\usepackage{wrapfig}
+% Настройки листингов.
+\include{listings.inc}
+\include{preamble.inc}
+\include{macros.inc}
+% Полезные макросы листингов.
+
+
+\title{Coursework}
+ 
+
+\begin{document}
+
+
+%Изменим нумерацию на более привычную...
+%... и нарушим этим гост.
+
+\renewcommand{\labelenumi}{\arabic{enumi})}
+\renewcommand{\labelenumii}{\asbuk{enumii})}
+
+
+\frontmatter  
+
+
+\include{Khaibrakhmanov/title-page-Khaib}
+%\include{00_authors}
+\pagestyle{plain}  
+
+%\include{00-abstract} - включить 
+
+\tableofcontents
+
+
+
+\include{00_defines}
+\include{01-abbrev}
+
+
+%\include{12-intro}
+
+
+\mainmatter 
+
+
+% \include{1-Osnovania}  % Постановка задачи
+
+\include{Khaibrakhmanov/0-Plan-ENG-Khaib}
+
+\include{Khaibrakhmanov/1-General-ENG-Khaib}
+
+\include{Khaibrakhmanov/2-Formal-ENG-Khaib}      
+ 
+\include{Khaibrakhmanov/4-Solution-ENG-Khaib}       
+
+\include{Khaibrakhmanov/5-report-ENG-Khaib}
+%\include{6-specification}
+%\include{6-spec-longtable} 
+
+%\include{7-port-comm}
+
+\backmatter %% Здесь заканчивается нумерованная часть документа и начинаются ссылки и
+            %% заключение
+
+%\include{7-conclusion}  % Выводы 
+
+\include{81-biblio}      % Список литературы 
+
+%\include{98-Otzyv}
+
+%\appendix   % Тут идут приложения
+
+%\include{91-appendix2} 
+
+% \include{999-list-of-updates}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

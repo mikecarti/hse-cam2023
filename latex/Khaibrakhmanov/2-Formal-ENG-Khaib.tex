@@ -1,0 +1,64 @@
+\chapter{Formal problem statement}
+\section{Static TSP}
+
+Given a weighted graph $G = (V, E)$, in our case complete, since from any vertex it can be rational to move to another, in the general case, where
+
+$V$ - number of objects recognized in the frame, at this stage football players, $V = {1, 2, 3, ..., k}$
+
+$E$ - edges of this graph;
+
+$d_{ij}(i, j \in V, i \neq j)$ - the distance between two vertices $i, j$, and $d_{ij} > 0$, $d_{ij} \neq \infty$ and $d_{ij} = d_{ji}$.
+
+We need to find a Hamiltonian cycle (closed path) such that
+\begin{align}
+     minD = \sum_{i,j \in V} d_{ij} * x_{ij},
+\end{align}
+Where
+\begin{equation}
+     x_{ij} =
+     \begin{cases}
+         1 & e_{ij} \in \text{optimal path}\\
+         0 & e_{ij} \notin \text{optimal path}
+     \end{cases}
+\end{equation}
+That is, $x_{ij}$ is a logical variable that turns to 1 if the edge $e_{ij}$ satisfies the condition of belonging to the optimal path, and 0 otherwise. The start and end of the round generally take place in the center of the football field. The result of the algorithm should be a path containing all the vertices of the graph and satisfying the conditions specified above.
+
+\section{Simulation}
+Given a football field on which there are players and a ball, specified by coordinates $\vec Y$, as functions of time $i$, in the reference system associated with the field. So we have an input array $Y^{nm}_i$, where
+\begin{itemize}
+    \item $n$ - player number;
+    \item $m$ - describes one of the coordinates of the player’s position;
+    \item $i$ - describes a timestamp.
+\end{itemize}
+Mean speed for a player is calculated as: 
+\begin{align}
+    \bar v = \frac{1}{T}\sum_{t = 1}^{T}\sqrt{(x_t - x_{t+1})^2 + (y_t - y_{t+1})^2}
+\end{align}, where 
+
+\begin{align}
+    v = \sqrt{(x_t - x_{t+1})^2 + (y_t - y_{t+1})^2}
+\end{align}
+is a speed of a player for the timestamps $t$ and $t+1$. Variance of speed for a player is calculated as:
+\begin{align}
+    \sigma^2 = \frac{1}{T-1}\sum_{t = 1}^{T}(v_t - \bar v)^2
+\end{align}
+Then, the average direction vector is formed as:
+\begin{align}
+    \vec D = \frac{1}{T}\sum_{t=1}^{T}\frac{\vec v_t}{||\vec v_t||}
+\end{align}, where 
+\begin{align}
+    \vec v_t = <x_t - x_{t+1}, y_t - y_{t+1}>
+\end{align}
+After that, an average mean speed, average variance of speed and the mean average direction vectors can be acquired for all players as of the following:
+\begin{align}
+    V_A= \frac{1}{N}\sum_{n=1}^{N}\bar v_n \\
+    \sigma_A^2 = \frac{1}{N}\sum_{n=1}^{N} \sigma_n^2 \\
+    \vec D_A = \frac{1}{N}\sum_{n=1}^{N} \vec D_n
+\end{align} where A is either "simulation" or "data" and N is the number of players, which is reduced to 20, as the goalkeepers for each team are excluded, since their behavior is drastically different from the remaining field players and the mean speed and the variance of speed would be significantly smaller than those of the other players, which could have a severe impact further on. Thus, the objective functions to be minimised are:
+\begin{align}
+    \begin{cases}
+    min{|V_{simulation} - V_{data}|} \\
+    min{|\sigma_{simulation}^2 - \sigma_{data}^2|} \\
+    min{|\vec D_{simulation} - \vec D_{data}|}
+    \end{cases}
+\end{align}

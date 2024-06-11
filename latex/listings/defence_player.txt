@@ -1,0 +1,24 @@
+1. Create a class called DefencePlayer that inherits from the Player class.
+2. Initialize the DefencePlayer with the following parameters:
+   - team_name (string): The name of the player's team.
+   - team (object): The team object to which the player belongs.
+   - player_id (integer): The unique identifier for the player.
+   - position (string): The player's current position on the field.
+   - grid (object): The grid representing the field.
+   - ball (object): The ball object.
+   - zone (array): The defensive zone assigned to the player.
+   - default_pos (array): The player's default position.
+3. In the move method:
+   a. Check if the ball is in the player's assigned zone:
+      - If yes:
+        - If the team mode is 'defensive':
+          - If the player is the closest to the ball, set the target position to the ball's current position.
+          - Otherwise, set the target position to the midpoint between the closest opposing player and the ball.
+        - Otherwise, set the target position to the ball's current position.
+      - If no:
+        - If the team mode is 'neutral':
+          - If the player is the closest to the ball, set the target position to the ball's current position.
+          - Otherwise, set the target position to the player's default position.
+        - If the team mode is 'defensive', set the target position to the midpoint between the closest opposing player and the ball.
+        - Otherwise, set the target position to the player's default position.
+   b. Call the move method from the parent class (Player) with the calculated target position.

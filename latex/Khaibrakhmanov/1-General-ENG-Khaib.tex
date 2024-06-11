@@ -1,0 +1,48 @@
+\chapter{Description of the problem setting for the course work}
+
+
+\section{General Work Plan}
+
+\begin{enumerate}
+    \item Delve into the research topic and get familiar with the associated literature.
+    \item Solve the TSP problem for navigating players statically positioned on the field.
+    \item Develop a simulation for debugging and testing the long-focus camera control algorithm.
+    \begin{enumerate}
+        \item Process pre-annotated data to build a heat map of player movement.
+        \item Based on heat maps, implement a model of player movement on the field, closely matching their real-game movements.
+        \item Develop a metric to fairly evaluate the simulation performance.
+        \item Integrate agent behavior simulation to camera simulation.
+    \end{enumerate}
+    \item Evaluate the results and discuss them, derive conclusions.
+\end{enumerate}
+
+\begin{figure}[!ht]
+    \centering
+    \includesvg[width=1.0\textwidth]{figures/Khaibrakhmanov-IMG/Gen_pipeline.svg}
+    \caption{General Pipeline}
+    \label{fig:gen-pipe}
+\end{figure}
+
+The general pipeline of the whole project (in association with Timchenko Daniil) is presented on the Figure~\ref{fig:gen-pipe}. Personally, I was assigned to develop the solution to the TSP problem for navigating players statically positioned on the field, as well as the implementation of a model of player movement part. 
+
+\section{Problem Statement}
+\subsection{Static TSP}
+Given a football field on which there are players and a ball, the task is to provide an ordered list of player id's (player numbers) for a particular timestamp, which is a frame in our case.
+
+\subsection{Simulation}
+Given two datasets: one for the 'Home' team and another for the 'Away' team — each containing information about the positions of the players and the ball the task is to create a model that closely resembles real-world soccer game data for both teams. To evaluate the simulation, we’ll use the following metrics:
+
+\begin{itemize}
+    \item Average mean speed of a player
+    \item Average variance of speed of a player
+    \item Mean average directional vector
+\end{itemize}
+
+\subsection{Approximations and limitations}
+\begin{itemize}
+    \item If one has the intentions to have many more amenities than football players, as well as a distinct quantity of facilities, then another algorithmic approach should be considered.
+    \item The camera should be brought back to the center of the field, as it starts there.
+\end{itemize}
+
+
+

@@ -1,0 +1,91 @@
+\chapter{Literature Review}
+
+% {\color{red} In this section, we compile references and literature review on the thesis topic. The text is just a machine translation of annotations - it needs to be fully creatively rethought. }
+
+% In the article \cite{Tinos2015}, the dynamic TSP with variable weights is explored. The impact of these changes on the problem's fitness landscapes is examined.
+
+% The paper addresses key questions about the dynamic TSP, such as "how many solutions are affected by a change?" and "how does the severity of the problem influence the optimal solutions?"
+
+% The study includes simulations of the dynamic TSP with weight changes, revealing that the new optimal solutions are usually close to the previous ones.
+
+% In \cite{10.1007/11903697_31}, a robust algorithm for solving DTSP is introduced. Experimental results demonstrate that this algorithm is highly effective, producing high-quality solutions in very short time steps.
+
+
+    % \item \href{https://www.youtube.com/watch?v=zjMuIxRvygQ&pp=ygULcXVhdGVybmlvbnM%3D}{Quaternions and 3d rotation, explained interactively} not literature
+    % \item \href{https://www.youtube.com/watch?v=d4EgbgTm0Bg&pp=ygULcXVhdGVybmlvbnM%3D}{Visualizing quaternions (4d numbers) with stereographic projection} not literature
+    % \item \href{https://distill.pub/2021/gnn-intro/}{A Gentle Introduction to Graph Neural Networks} cited 
+    % \item \href{}{M. Mavrovouniotis and S. Yang, “Ant colony optimization algorithms with immigrants schemes for the dynamic travelling salesman problem,” in Evolutionary Computation for Dynamic Optimization Problems. Berlin, Germany: Springer, 2013, pp. 317–341} (Meta-Heuristics) too deep
+    % \item \href{}{C. Groba, A. Sartal, and X. H. Vázquez, “Solving the dynamic traveling salesman problem using a genetic algorithm with trajectory prediction: An application to fish aggregating devices,” Comput. Oper. Res., vol. 56, pp. 22–32, Apr. 2015.} (Meta-Heuristics) too deep
+    % \item \href{}{J.-F. Cordeau, G. Ghiani, and E. Guerriero, “Analysis and branch-and-cut algorithm for the time-dependent travelling salesman problem,” Transp. Sci., vol. 48, no. 1, pp. 46–58, Feb. 2014} (Linearization of TDTSP) cited
+    % \item \href{}{A. Montero, I. Méndez-Díaz, and J. J. Miranda-Bront, “An integer programming approach for the time-dependent traveling salesman problem with time Windows,” Comput. Oper. Res., vol. 88, pp. 280–289, Dec. 2017.} (Linearization of TDTSP) cited
+    % \item \href{https://cnrrobertson.github.io/other/mlseminar/fall_2021/Stochastic%20Temporal%20Networks%20-%20Binan%20Gu.pdf}{Stochastic Temporal Networks} did not write about it, not sure if i should include or not
+    % \item \href{https://towardsdatascience.com/temporal-graph-learning-in-2024-feaa9371b8e2}{Temporal Graph Learning in 2024} did not write about it, not sure if i should include or not
+    % \item \href{https://arxiv.org/abs/1803.08475}{W. Kool, H. Van Hoof, and M. Welling, “Attention, learn to solve routing problems!,” in Proc. Int. Conf. Learn. Represent., 2019.} cited
+    % \item \href{https://medium.com/stanford-cs224w/tackling-the-traveling-salesman-problem-with-graph-neural-networks-b86ef4300c6e}{Tackling the Traveling Salesman Problem with Graph Neural Networks} cited
+
+\section{Description of Relevant Literature}
+
+\subsection{Temporal Graphs }
+
+$\bullet$ \cite{doe2024temporal} Each edge $e = (u, v, t) \in E$ is a temporal edge from a vertex $u$ to another vertex $v$ at time $t$. For any two temporal ages $(u,v,t_1)$ and $(u,v,t_2)$ $t_1 \neq t_2$.
+
+$\bullet$ Each vertex $v \in V$ is active when there is a temporal edge that starts or ends at $v$.
+
+$\bullet$ $d(u, v)$: the number of temporal edges from $u$ to $v$ in $G$.
+
+$\bullet$ $E(u, v)$: the set of temporal edges from $u$ to $v$ in $G$, i.e., $E(u,v)=\{(u,v,t_1),(u,v,t_2), ..., (u,v,t_{d(u,v)})\}$.
+
+$\bullet$ $N_{out}(v)$ or $N_{in}(v)$: the set of out-neighbors or in-neighbors of $v$ in $G$, i.e., $N_{out}(v) = \{u : (v, u, t) ∈ E\}$ and $N_{in}(v) = \{u : (u, v, t) ∈ E\}$.
+
+$\bullet$ $d_{out}(v)$ or $d_{in}(v)$: the temporal out-degree or in-degree of $v$ in $G$, defined as $d_{out}(v) = \sum_{u \in N_{out(v}} d(v,u)$ and $d_{in}(v) = \sum_{u \in N_{in(v}} d(u,v)$.
+
+\subsection{Sub-types of TSP }
+Based on the book "The Traveling Salesman Problem and Its Variations," \cite{gutin2007traveling} two variations of TSP stand out as most relevant to our problem:
+
+% {\color{blue}
+% Moving Target TSP: A set $X = \{x_1, x_2, \ldots, x_n\}$ of $n$ objects placed at points $\{p_1, p_2, \ldots, p_n\}$. Each object $x_i$ is moving from $p_i \in \mathbb{R}^2$ at velocity $v_i$. A pursuer starting at the origin moving with speed $v$ wants to intercept all points $x_1, x_2, \ldots, x_n$ in the fastest possible time. This problem is related to the time-dependent TSP.
+
+% Time-Dependent TSP: For each arc $(i, j)$ of $G$, $n$ different costs $c_{ij}^t = 1, 2, \ldots, n$ are given. The cost $c_{ij}^t$ corresponds to the 'cost' of going from city $i$ to city $j$ in time period $t$. The objective is to find a tour $(\tau(1), \tau(2), \ldots, \tau(n), \tau(1))$, where $\tau(1) = 1$ corresponds to the home location which is in time period zero, in $G$ such that $\sum_{i=1}^{n} c_{\tau(i) \tau(i+1)}^{t_i}$ is minimized. The index $n + 1$ is equivalent to 1. For all $(i, j)$, if $c_{ij}^t = c_{ji}^t = \ldots = c_{ij}^{t'}$, then the time-dependent TSP reduces to the traveling salesman problem.
+% }
+Moving Target TSP: We have a collection $X = \{x_1, x_2, \ldots, x_n\}$ of $n$ objects, each located at positions $\{p_1, p_2, \ldots, p_n\}$. Each object $x_i$ moves from its position $p_i$ in $\mathbb{R}^2$ with velocity $v_i$. A pursuer starts at the origin and moves at speed $v$ with the objective of intercepting all objects $x_1, x_2, \ldots, x_n$ as quickly as possible. This problem relates to the time-dependent TSP.
+
+Time-Dependent TSP: In this scenario, each arc $(i, j)$ in $G$ has $n$ different costs $c_{ij}^t = 1, 2, \ldots, n$. The cost $c_{ij}^t$ indicates the cost of traveling from city $i$ to city $j$ during time period $t$. The aim is to determine a tour $(\tau(1), \tau(2), \ldots, \tau(n), \tau(1))$, where $\tau(1) = 1$ is the home location at time period zero, in $G$ such that $\sum_{i=1}^{n} c_{\tau(i) \tau(i+1)}^{t_i}$ is minimized. Here, $n + 1$ is equivalent to 1. If $c_{ij}^t = c_{ji}^t = \ldots = c_{ij}^{t'}$ for all $(i, j)$, the time-dependent TSP reduces to the traditional traveling salesman problem.
+
+
+In our case, it seems that the problem encompasses both sub-types.
+
+
+In the article \cite{Tinos2015}, the dynamic TSP with variable weights is explored. The impact of these changes on the problem's fitness landscapes is examined.
+
+The paper addresses key questions about the dynamic TSP, such as "how many solutions are affected by a change?" and "how does the severity of the problem influence the optimal solutions?"
+
+The study includes simulations of the dynamic TSP with weight changes, revealing that the new optimal solutions are usually close to the previous ones.
+
+In \cite{10.1007/11903697_31}, a robust algorithm for solving DTSP is introduced. Experimental results demonstrate that this algorithm is highly effective, producing high-quality solutions in very short time steps.
+
+
+\subsection{Deep Reinforcement Learning}
+In 2023, an article \cite{RL} was published that formulates a problem similar to the one considered in this work. It turned out that our problem is more related to Time-Dependent TSP (TDTSP) rather than Dynamic TSP (DTSP), as initially assumed. 
+The authors used a Deep Reinforcement Learning approach to solve this problem, introducing an additional complication: new vertices can disappear and appear in the process, which may also be relevant for a football field. Provided the data issue (ensuring a sufficient volume of data for training an RL model with an attention mechanism) is resolved, the authors' methodology can be adapted to our case.
+
+\subsection{Vehicle Routing Problem (VRP)}
+
+Problem Statement of VRP:
+The Vehicle Routing Problem (VRP) (\cite{BIGRAS2008685} \cite{kool2019attention}) is an optimization problem aimed at finding the optimal routes for a fleet of vehicles, taking into account several factors such as time, cost, and load capacity. Formally, in VRP, there is a given number of vehicles, each with constraints on load capacity and working hours. There is also a set of client points that need to be visited, and for each point, the load and service time requirements are known. The objective of VRP is to optimally allocate the client points among the vehicles to minimize the total costs, considering all constraints.
+
+Difference from TSP:
+The main difference between TSP and VRP is that in TSP, there is one salesman who must visit a set of cities and return to the starting point, minimizing the total distance. In VRP, there are multiple vehicles, each needing to service a set of client points with specific constraints. Therefore, in VRP, it is necessary to optimize the allocation of client points among the vehicles considering various factors such as load capacity, service time, and throughput, making this problem more complex compared to TSP. The VRP problem statement may be relevant in the case of multiple observing cameras.
+
+\subsection{CGN (Convolutional Graph Networks) for TSP}
+The article \cite{gnn} discusses the use of GNN for optimizing the route when multiple cities need to be visited and returned to the starting point. The basics of the problem, the application of GNN to it, and the implementation details of the model using Graph Transformer and Residual Gated GCN are discussed. It concludes that the model demonstrates the ability to find optimal routes but requires labeled data, and a promising direction for development could be a transition to reinforcement learning. Labeled data are obtained using the Concorde TSP Solver, meaning that optimal paths for graphs need to be calculated first, and then the neural network training can begin.
+
+\subsection{Graph Neural Networks}
+Graphs are pervasive in our world, with many real-world entities being defined by their connections to others. These collections of objects and their interconnections can be naturally represented as graphs. For more than a decade, researchers have been developing neural networks tailored to graph data, known as graph neural networks (GNNs). Recent advancements have significantly enhanced their capabilities and expressive potential. Today, GNNs are finding practical applications in diverse fields such as antibacterial discovery, physics simulations, fake news detection, traffic prediction, and recommendation systems.
+
+This article \cite{sanchez-lengeling2021a} delves into the intricacies of modern graph neural networks. We structure our discussion into four sections. Initially, we examine the types of data that are most appropriately represented as graphs, along with some typical examples. Next, we discuss what sets graphs apart from other data types and the unique considerations required when working with them. In the third section, we construct a modern GNN, detailing each component of the model and tracing the evolution of key innovations in the field. We progress from a basic implementation to a cutting-edge GNN model. Finally, we offer a GNN playground, allowing you to experiment with a real-world task and dataset to better understand how each element of a GNN model influences its predictions.
+
+\subsection{Linearization of TDTSP (integer programming) \cite{tdtsp-branch-cut}}
+Papers \cite{tdtsp-branch-cut} and \cite{MONTERO2017280} showed the possibility of formulating the time-dependent traveling salesman problem, as an integer programming problem, diving deeper on the first of those papers here. Given the Time-Dependent Traveling Salesman Problem (TDTSP), the task is to find a Hamiltonian tour with the shortest total duration, where traversal times between vertices vary over time. This paper makes two main contributions. First, it introduces a lower and upper bounding procedure that involves solving a simpler, though still NP-hard, asymmetric traveling salesman problem (ATSP). Additionally, it is demonstrated that this ATSP solution is optimal for the TDTSP when all arcs exhibit a common congestion pattern. Second, the paper formulates the TDTSP as an integer linear programming model and develops valid inequalities for this model. These inequalities are incorporated into a branch-and-cut algorithm capable of solving instances with up to 40 vertices.
+
+\subsection{Genetic ant colony algorithms}
+The Dynamic Traveling Salesman Problem (DTSP) is a complex optimization challenge that traditional methods struggle to solve. Numerous approaches have been proposed in the literature, each with its own strengths and weaknesses. Among these, Genetic Algorithms (GA) and Ant Colony Optimization (ACO) have proven effective for tackling the DTSP. This paper \cite{Gharehchopogh2012} introduces a novel hybrid algorithm that combines GA and ACO to provide an improved solution for the DTSP. The hybrid algorithm focuses on the suitability of the method and the travel distance for the DTSP. The results indicate that the hybrid algorithm avoids easily settling into local optima and demonstrates a good convergence speed towards an optimal solution.

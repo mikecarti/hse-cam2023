@@ -1,0 +1,72 @@
+\chapter{Results}
+
+Working on the research so far we have managed to
+\begin{itemize}
+    \item Get acquainted with the research topic through literature review
+    \item Mark and pre-process the original data
+    \item Develop the coordinate transformation for conversion of the coordinates of a camera to the view from above
+    \item The results of the previous step were used for the solution of the static TSP problem 
+    \item For all of the above steps the code has been written, and the model works, giving expected results
+\end{itemize}
+
+The next step would be the implementation of the dynamic TSP model and the publication of the results.
+
+\section{Evaluation of Camera Traversal Algorithm }
+\subsection{Metric and Experiment formulation}
+To evaluate the algorithm, the metric chosen is time required to traverse through all players with stopping time on a player equal to $t_{stop} = 5$. Number of players $n_{players} = 22$ and $n_{iter} = 100$. An experiment will be ran $n_{iter}$ of times, and the T will be the metric for the according algorithm:
+$$
+T=\frac{1}{n_{iter}}\sum\limits_{i=1}^{n_{iter}} t_{i}
+$$
+
+Note that $t_{i}$ is measured in simulation ticks, with conversion formula $25  \cdot t_{i} = 1 \text{ second}$, giving FPS (frames per second) to be 25 ($FPS=25$). Also statistics like standard deviation and interquantile range will be displayed for further analysis. 
+
+Given such framework of evaluation, it is possible to compare quality of a baseline to the quality of the developed KNN-Greedy approach. {\color{purple}(Possibly delete a part about comparing)}
+
+\subsection{Dataset}
+To assure that experiments are representative of the real-world scenario, a soccer match simulation from Timur Khaibrakhmanov was used. In the simulation, player movement is modelled with similar to real-world laws. Despite that simulation quite accurately represents football matches, it has a randomization component, that allows to create $n_{iter}=100$ diverse simulations, that represent the soccer dynamics. On those generated simulations, the algorithm is tested. Algorithm only posesses the information prior to during timestamp, thus it simulates real-world unpredictability of players' behaviour.
+
+\subsection{Result of the Experiment}
+\begin{table}[h!]
+\centering
+\caption{Statistics of the KNN Greedy Performance for $N=100$ in frames}
+\begin{tabular}{lr}
+\toprule
+Statistic & Frames for Complete Traversal \\
+\midrule
+Count     & 100.00000 \\
+\textbf{Mean}      & \textbf{408.56000} \\
+Standard Deviation (std) & 46.73919 \\
+Minimum (min)  & 305.00000 \\
+25th Percentile (25\%) & 375.75000 \\
+Median (50\%)  & 412.50000 \\
+75th Percentile (75\%) & 442.25000 \\
+Maximum (max)  & 549.00000 \\
+\bottomrule
+\end{tabular}
+\label{table:algorithm_stats}
+\end{table}
+
+
+
+\begin{table}[h!]
+\centering
+\caption{Statistics of the KNN Greedy Performance for $N=100$ in seconds}
+\begin{tabular}{lr}
+\toprule
+Statistic & Seconds for Complete Traversal \\
+\midrule
+Count     & 100.00000 \\
+\textbf{Mean}      & \textbf{16.3424} \\
+Standard Deviation (std) & 1.8695676\\
+Minimum (min)  & 12.2 \\
+25th Percentile (25\%) & 15.03 \\
+Median (50\%)  & 16.5 \\
+75th Percentile (75\%) & 17.69 \\
+Maximum (max)  & 21.96 \\
+\bottomrule
+\end{tabular}
+\label{table:algorithm_stats}
+\end{table}
+
+
+

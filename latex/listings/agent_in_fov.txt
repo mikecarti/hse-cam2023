@@ -1,0 +1,29 @@
+Algorithm: is_agent_inside_fov
+Input: Point (x, y), Tetragon [point1, point2, point3, point4]
+Output: True if the point is inside the fov, otherwise False
+
+1: begin
+2:     Initialize windingNumber <- 0
+3:     Initialize tetragon <- [point1, point2, point3, point4]
+
+4:     for i from 0 to tetragon.size - 1 do
+5:         x1, y1 <- tetragon[i]
+6:         x2, y2 <- tetragon[(i + 1) mod tetragon.size]
+
+7:         if y1 <= y then
+8:             if y2 > y then
+9:                 if is_left_of_line((x1, y1), (x2, y2), (x, y)) then
+10:                    windingNumber <- windingNumber + 1
+11:                end if
+12:            end if
+13:        else
+14:            if y2 <= y then
+15:                if is_left_of_line((x1, y1), (x2, y2), (x, y)) then
+16:                    windingNumber <- windingNumber - 1
+17:                end if
+18:            end if
+19:        end if
+20:    end for
+
+21:    return (windingNumber != 0)
+22: end

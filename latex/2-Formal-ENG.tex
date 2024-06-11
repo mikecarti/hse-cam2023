@@ -1,0 +1,127 @@
+\chapter{Formal problem statement}
+\label{cha:Proposal-ENG}
+  
+ \section{The problem of traversing a set of moving points on a surface}
+
+% {\color{red} Обращаю внимание что это не совсем задача описанная в статье - тут ребра графа меняются взаимосвязанным образом и корректно говорить все таки о задаче в ее первозданном виде. Необходимо тут сформулировать задачу в терминах поиска пути на графе заданного множеством вершин $A$ с длиной ребер вычисляемой, как функция времени.}
+
+\iffalse % comment out large portion
+Let us start from afar.  Assume that there exist a set of points $a=(x,y) \in\mathcal{A}$ on 2-dimensional surface, all these points coexist with some coordinates that describe their positions. 
+These points coexist in an (assumably) discrete time interval 
+$T$ ($T=\{1,2,3,\dots,k,\dots,t \}$). 
+Assume all these points have their vectors, which represent their positions during every time index $i$. 
+
+$$
+\alpha_{j} = \begin{bmatrix}
+a_{0} \\
+a_{1} \\
+\vdots \\
+a_{k} \\
+\vdots \\
+a_{t}
+\end{bmatrix} = \begin{bmatrix}
+x_{0}  & y_{0} \\
+x_{1}  & y_{1} \\
+\vdots & \vdots\\
+x_{k}  & y_{k} \\
+\vdots & \vdots\\
+x_{t}  & y_{t}
+\end{bmatrix} \quad \forall \alpha_j \in \mathcal{A}
+$$
+
+On each time step $i$ it is trivial to show, that such set of points may be converted in a fully connected graph $G$, where nodes represent points $a$ and vertices represent the euclidean distance between two points. Then the optimization goal would be as follows: Given history of movement $T_{[1,k]} = \{1,2,...,k\}$ for $a_j \in \mathcal{A}$ find such path that it would be the fastest given the fact, that travelling speed $V$ is fixed (assumption), given the fact that movement for the period $T_{[k+1, t]}$ is unknown.
+
+To simplify this, let us assume, that we already have a *good enough* predicting algorithm to know not only $T_{[1,k]}$ but $T_{[k+1, t]}$ as well. Then the formal statement from 1.4.1 is a modified:
+... To be continued.
+
+\fi % end of commenting out large portion
+
+Let $\mathbb{R}^{3}$ be the vector space, and $P_{t}$ = $\{ (x_{1}^{(t)},y_{1}^{(t)}), \dots, (x_{n}^{(t)},y_{n}^{(t)}) \}$ would be a set of observed objects existing in this vector space, that lie on a plane $z=0$ in moment of time $t \, \in \, \mathbb{N}$ ($x,y \, \in \, \mathbb{R}$). Let $\mathcal{P}$
+$$\mathcal{P}_{t}(\hat{x}, \hat{y}, \hat{z}, \phi_{t}, \psi_{t}, \theta_{t},) \to \mathcal{V}$$
+be the projection function that calculates corner points of FOV projection $\mathcal{V}_{t}$ $\, \in \, \mathbb{R}^{{3\times4}}$ on $z=0$ in the moment $t$. Here $\hat{x}, \hat{y}, \hat{z}$ - coordinates of a camera, $\phi_{t}, \psi_{t}, \theta_{t}$ - yaw (azimuth), pitch (elevation)  and roll in the time moment $t$ (rotation coordinates).
+%% and $\zeta$ - is the zoom factor.  %%
+
+Let $\mathcal{C}$
+$$
+\mathcal{C}(P_{t}, \mathcal{V}_{t}) \to \begin{bmatrix}
+\Delta\phi_{t}  &  \Delta\psi_{t}  &  \Delta\theta_{t} 
+\end{bmatrix}^{T}
+$$
+be the controller function, that makes a decision on the controlling of camera direction and zoom for the timestep $t+1$.  Camera rotations then are updated as following:
+$$
+\begin{bmatrix}
+\phi_{t+1}   \\
+ \psi_{t+1} \\
+  \theta_{t+1} 
+\end{bmatrix} = 
+\begin{bmatrix}
+\phi_{t}   \\
+ \psi_{t} \\
+  \theta_{t}
+\end{bmatrix} + 
+\begin{bmatrix}
+\Delta\phi_{t}  \\
+ \Delta\psi_{t}  \\
+ \Delta\theta _{t}
+\end{bmatrix}
+$$
+
+Let $\mathcal{I}$ 
+$$
+\mathcal{I}_{t}(\mathcal{P_{t}}, \mathcal{V}_{t}, p_{1}, p_{2}) \to a \, \in \, \{ 0,1 \}
+$$
+Be the indicator function, concluding if an observed object is taking up from $p_{1}$ to $p_{2}$ portion of space on a viewfinder AND never was observed in proper ratio before ($p_{1} \leq p \leq p2$). $a$ in this case is an indicator (True or False).
+
+Then the constrained optimization problem looks as following:
+$$
+\begin{cases}
+\sum\limits_{t=1}^{T} \mathcal{I}_{t}(\mathcal{P_{t}}, \mathcal{V}_{t}, p_{1}, p_{2}) \geq n \\
+T \to \min\limits_{\mathcal{C}}
+\end{cases}
+$$
+
+
+
+\section{An alternative formulation of DTSP in the general case}
+DTSP is defined on a complete bidirectional graph $ G = (V, E) $, where $ V $ is the set of vertices of size $ n $ and $ E $ is the set of edges. $ V $ consists of a depot 0 and a set of potential agents. We consider an asymmetric distance in DTSP. Thus, $ E $ includes edges in both directions. The agents to be visited are placed in a pool of agents $ C $ of size $ c $, where $ C $ is a subset of $ V $.
+
+The salesman starts his journey from depot 0 at the beginning of time (t = 0). He must service each agent in the pool $ C $ exactly once and then return to the depot. The travel time from vertex $ i $ to vertex $ j $ depends on a time-dependent function $ g_{ij} (t) $, where $ t $ is the time to visit vertex $ i $. We assume that the seller does not wait at a vertex. This is true when the FIFO (First-In-First-Out) constraint is satisfied, i.e., it is guaranteed that if a vehicle leaves vertex $ i $ for vertex $ j $ at a certain time, any identical vehicle leaving vertex $ i $ for vertex $ j $ at a later time will arrive later at vertex $ j $.
+
+Let $ x_{ij} $ be a binary decision variable that equals 1 if the seller travels from vertex $ i $ to vertex $ j $, and 0 otherwise.
+
+Let $ s_i $ be the time when the seller visits vertex $ i $. The objective is to minimise the total travel time to visit all agents, i.e.
+
+$$
+\min_{}\sum_{i\, \in\, \{ 0 \}\cup C}\;\sum_{j\, \in\, \{ 0 \}\cup C} g_{ij}(s_{i})x_{ij}
+$$
+
+Set of constraints:
+
+
+\begin{align}
+\sum_{j \, \in \, \{ 0 \}\cup C} x_{ij} = 1 \quad  \forall i \, \in \, C \\
+\sum_{i \, \in \, \{ 0 \}\cup C} x_{ji} =1 \quad  \forall i \, \in \, C \\
+s_{0} = 0 \\
+s_{i} + g_{ij}(s_{i})x_{ij} = s_{i} + (s_{j}-s_{i})x_{ij} \\
+\forall i \, \in \, \{ 0 \} \cup C, j \, \in \, C \\
+x_{ij} \, \in \, \{ 0,1 \} 
+\end{align}
+
+
+Constraints (2) and (3) ensure that there is only one incoming and outgoing vertex for agent $ i $. Constraint (4) is the initial time of the commit-merchant in the depot. Constraints (5) specify that the visit time of agent $ j $ depends on the visit time of its predecessor $ i $. This set of constraints also guarantees that the visit time at each vertex increases along the path (provided that $ g_{ij}(t)>0 $). Hence, there is no sub-cycle in the solution.
+
+The model expressed by formulas (1)-(6) is essentially a formulation of TDTSP. It is nonlinear because of the time-dependent function $ g_{ij} (t)$. Some researchers try to linearise the formulation by imposing additional assumptions. In contrast, this formulation describes the most generalised version. Note that the domain $ g_{ij}(t) $ is continuous. For ease of data collection, the time space can be discretised into a set $ T $ of time steps. Thus, we have the travelling time from vertex $ i $ to vertex $ j $ around a time step $ t \in T $ as input values denoted as $ d_{ij}(t) $. Here we call $ [d_{ij}(t)] $ the traffic pattern of the graph $ G $. We can then approximate $ d_{ij}(t) $ by working with $ d_{ijt} $.
+
+TDTSP assumes that all conditions of the graph dynamics are known in advance. In practice, to cope with the dynamic environment, we introduce a stochastic variable $ \phi_{ij}(t) $ in addition to $ g_{ij}(t) $ to deal with the uncertainty of the actual travelling time. Then the actual travelling time from vertex $ i $ to vertex $ j $ at time $ t $, denoted as $ f_{ij}(t) $, is $ f_{ij}(t) = g_{ij}(t) + \phi_{ij}(t) $. 
+
+To address the other uncertainty problem, i.e., changing agent queries in a dynamic environment, we introduce a random operation $ \Omega_{k} $ after the camera finishes inspecting the $ k $-th agent, denoted as
+
+$$
+\Omega_{k} = \begin{cases}
+1 , & \text{insert unvisited agent $ i $ into set $ C $} \\
+0 , & \text{do nothing} \\
+-1 , & \text{remove agent $ i $ from set $ C $}
+\end{cases}
+$$
+
+DTSP is an online optimisation task. Solving it efficiently is very difficult. Considering the scaling problem $ n = 40 $ of a graph G with invariant location. If $ c = 20 $, the number of possible instances is also huge. When the two dynamic aspects mentioned above are taken into account, the problem becomes even more difficult. 

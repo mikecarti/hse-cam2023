@@ -1,0 +1,40 @@
+Algorithm: Camera Movement to Track Players
+Input: List of players with coordinates
+Output: Camera movement plan to visit each player
+
+1: Initialize camera
+2: Set camera aim to the result of calc_principal_axis_intersection()
+3: Initialize unvisited_players as a copy of players
+
+4: while there are unvisited players do
+5:     player <- get_closest_player(camera.aim, unvisited_players)
+6:     Remove player from unvisited_players
+7:     camera_target_aim <- (player.x, player.y)
+8:     movement_plan_array <- generate_linear_trajectory(camera.aim, camera_target_aim)
+
+9:     i <- 0
+10:    while player is not visited by camera for 3 seconds do
+11:        camera.phi <- camera.phi + calc_delta_phi(camera, camera.aim, movement_plan_array[i])
+12:        camera.theta <- camera.theta + calc_delta_theta(camera, camera.aim, movement_plan_array[i])
+13:        i <- i + 1
+14:    end while
+15: end while
+
+Function calc_delta_phi(camera, cur_aim, target_aim)
+    # Calculate the yaw adjustment
+    1: init_vec <- [cur_aim.x - camera.x, cur_aim.y - camera.y]
+    2: target_vec <- [target_aim.x - camera.x, target_aim.y - camera.y]
+    3: init_vec_angle <- vec_to_angle(init_vec)
+    4: target_vec_angle <- vec_to_angle(target_vec)
+    5: return target_vec_angle - init_vec_angle
+End Function
+
+Function calc_delta_theta(camera, cur_aim, target_aim)
+    # Calculate the pitch adjustment
+    1: top_aov <- camera.pitch - camera.vertical_aov
+    2: target_vec <- [target_aim.x - camera.x, target_aim.y - camera.y]
+    3: ratio <- norm(target_vec) / norm(camera.height)
+    4: raw_pitch <- to_degrees(arctan(ratio)) % 360.0
+    5: pitch <- 90 - raw_pitch
+    6: return pitch - top_aov
+End Function

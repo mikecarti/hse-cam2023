@@ -1,0 +1,22 @@
+\chapter{Results}
+\section{Simulation Evaluation}
+To evaluate the results 20 simulations, the duration of each being 45 minutes, were generated. For the 20 resulting datasets the evaluation statistics being the mean speed, the speed variance and the average direction vector were calculated and then averaged. Then the evaluation metrics were calculated after conducting the same procedure for the given dataset. The results are presented in the table below:
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{c|c}
+        \hline
+        \textbf{Metric} & \textbf{Value} \\
+        \hline
+        Difference in Mean Speed &  0.04\\
+        Difference in Variance of Speed & 2.66 \\
+        Difference in average direction on x & 0.11\\
+        Difference in average direction on y & 0.71
+    \end{tabular}
+    \caption{Evaluation}
+    \label{tab:sim_eval}
+\end{table}
+
+The average direction on x and y is given in radians. Based on the following results, it can be concluded that the difference in mean speed and difference in average direction on x can be considered satisfactory. However poor results on the variance of speed and difference in average direction on y should be examined. The high variance difference is most likely related to the inability to grasp all of the nuances of the player logic, those being the specific decisions, like dribbling, standing in place and a sudden acceleration. High difference between the average direction on y can be explained by the team style and by the randomness overall: since we are lacking the real world data to compare the simulations with, other teams may have acquired various strategies, which might have included different spatial patterns. 
+
+
+

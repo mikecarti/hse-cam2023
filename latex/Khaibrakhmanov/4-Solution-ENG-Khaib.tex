@@ -1,0 +1,37 @@
+\chapter{Solution}
+
+\section{Static TSP}
+\begin{figure}[ht!]
+    \centering
+    \includesvg[width=1.0\textwidth]{figures/Khaibrakhmanov-IMG/Pipeline_Static.svg}
+    \caption{Static TSP Pipeline}
+    \label{fig:tsp}
+\end{figure}
+The Static TSP solution pipeline is presented on the figure~\ref{fig:tsp}.
+
+There are many solutions to the TSP problem, but there are several key differences between them, the main one being the accuracy. Some algorithms can solve the problem of finding the minimal closed path exactly, while others do not guarantee the minimal path but are significantly faster. For this specific task, the exact solution option was chosen since the number $n$, i.e., the number of recognized objects in the frame, is rather small. Had it been larger, there would possibly be a need to reconsider a solution algorithm.
+
+Thus, according to the article~\cite{Zhang_2021}, the most optimal option was the dynamic programming method, since among the exact approaches to solving TSP, it showed the highest speed. The implemented algorithm takes a data frame of one frame with recognized objects with already transformed coordinates and returns a path that includes the id's of all recognized objects in the frame in the order that minimizes the Hamiltonian closed path in the graph, whose vertices are the id's, as well as the total path length. 
+\newpage
+\section{Simulation}
+\begin{figure}[ht!]
+    \centering
+    \includesvg[width=1.0\textwidth]{figures/Khaibrakhmanov-IMG/Sim_pipeline.svg}
+    \caption{Static TSP Pipeline}
+    \label{fig:sim}
+\end{figure}
+The simulation solution pipeline is presented on the figure~\ref{fig:sim}.
+A higher-level description of the simulation logic is the following:
+At each timestamp - every 0.04 seconds a set of actions $A_{alpha}$, $A_{beta}$ for each of the teams $T_{alpha}$, $T_{beta}$ is generated, based on the current positions of all of the players on the field, the ball position, player's sub-class and the team mode ($M$), which could be either {'offensive', 'neutral', 'defensive'}. At each time stamp each individual player has to move in some direction, or if the player is controlling the ball he can also hit it towards the target. An example of the 'DefencePlayer' class logic is demonstrated above in the structured pseudo code:
+\lstinputlisting[numbers=none]{listings/defence_player.txt}
+
+For each team all of the players are divided into sub-classes of either {'Goalkeeper', 'Defender', 'Midfielder', 'Forward'}. Each sub-class has its own unique decision-making logic and a special parameter zone - an area, where this player would most-likely spend most of the time. 
+
+Before the game start all of the players are arranged according to one of the well-known formation schemes. After the game starts for the duration of the simulation, which is pre-defined coordinates of the players are written to a data frame, which is later used for the evaluation. 
+
+Some other approaches were also tackled, for instance there were several attempts to implement an approach, discussed in \cite{FONSECA20121652}, introducing the usage of the Voronoi diagrams, which would allow a rather more sophisticated addressing of the spatial distribution patterns. However, this idea did not lead to much success due to high computational costs. Although this concept did not catch on, a valuable insight of players from the team with the ball being further apart from each other, whereas defenders being closer to each other was adopted and transferred into the simulation. An example of such behavior can be seen in the defending players trying to 'cut' the opponents and intercept the passed between the two teammates ball, moving towards the mid point of their closest opposing player and the player with the ball in advance.
+
+Another interesting concept, which could be introduced to the model is an approach presented in \cite{boudine2024new}, a 4-network framework, which is a mathematical model, considering the four forces having impact on a decision of a player with a ball: the time to make a decision, the probability $p_{i, j}(\tau_i)$ that the player $t_j$ will receive a pass from the player $t_i$ in comfortable conditions, the risk $r_j$, which measures  the threatening of the adversary’s goal if the ball reaches the player $t_j$ and a score probability $s_i$ of the i-th player. Unfortunately, this framework would require a severely new concept of the game style of a team, not applicable due to the high computational expenses.
+
+Finally, what could have been done is a physics-based model, such as in \cite{Spearman} or in \cite{Alguacil2019ModellingTC}, which represent the so-called time-to-intercept methods and account various fundamental forces that influence the trajectory of a ball. Those advancements are to be studied and implemented in the current model.
+

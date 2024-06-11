@@ -1,0 +1,96 @@
+\chapter{Results}
+
+\section{Evaluation of Camera Traversal Algorithm }
+\subsection{Metric and Experiment formulation}
+To evaluate the algorithm, the metric chosen is time required to traverse through all players with stopping time on a player equal to $t_{stop} = 5$. Number of players $n_{players} = 22$ and $n_{iter} = 100$. An experiment will be ran $n_{iter}$ of times, and the T will be the metric for the according algorithm:
+$$
+T=\frac{1}{n_{iter}}\sum\limits_{i=1}^{n_{iter}} t_{i}
+$$
+
+Note that $t_{i}$ is measured in simulation ticks, with conversion formula $25  \cdot t_{i} = 1 \text{ second}$, giving FPS (frames per second) to be 25 ($FPS=25$). Also statistics like standard deviation, inter-quantile range  and histogram will be displayed for further analysis. Given the fact that PTZ cameras are often able to gather angular velocity up to 30 $^{\circ}$ per second (\href{https://www.bit-cctv.com/products/outdoor-mini-pan-tilt-positioner-head.html}{\textcolor{blue}{Source}}), given that in our case approximately 90 $^{\circ}$ of horizontal panning is enough to traverse the field and also we can not expect camera to be always on max speed, we can approximate an average speed as 18 $^{\circ}$ per second. Given such speed, it is possible to traverse the field in 5 seconds, that way yielding that on average linear speed of a camera may be roughly approximated to 20 meters per second or 0.8 meters per one frame given a FPS of 25 frames.
+) 
+
+Given such framework of evaluation, it is possible to compare quality of a baseline to the quality of the developed KNN-Greedy approach. {\color{purple}(Possibly delete a part about comparing)}
+
+\subsection{Dataset}
+To assure that experiments are representative of the real-world scenario, a  \href{https://github.com/mikecarti/hse-cam2023/tree/main/simulation}{soccer match simulation from Timur Khaibrakhmanov} was used. In the simulation, player movement is modeled with similar to real-world laws. Despite that simulation quite accurately represents football matches, it has a randomization component, that allows to create $n_{iter}=100$ diverse simulations, that represent the soccer dynamics. On those generated simulations, the algorithm is tested. Algorithm only possesses the information prior to during timestamp, thus it simulates real-world unpredictability of players' behavior.
+
+\subsection{Result of the Experiment}
+\begin{table}[h!]
+\centering
+\caption{Statistics of the KNN Greedy Performance for $N=100$ in frames}
+\begin{tabular}{lr}
+\toprule
+Statistic & Frames for Complete Traversal \\
+\midrule
+Count     & 100.00000 \\
+\textbf{Mean}      & \textbf{408.56000} \\
+Standard Deviation (std) & 46.73919 \\
+Minimum (min)  & 305.00000 \\
+25th Percentile (25\%) & 375.75000 \\
+Median (50\%)  & 412.50000 \\
+75th Percentile (75\%) & 442.25000 \\
+Maximum (max)  & 549.00000 \\
+\bottomrule
+\end{tabular}
+\label{table:algorithm_stats}
+\end{table}
+
+
+
+
+
+\begin{table}[h!]
+\centering
+\caption{Statistics of the KNN Greedy Performance for $N=100$ in seconds}
+\begin{tabular}{lr}
+\toprule
+Statistic & Seconds for Complete Traversal \\
+\midrule
+Count     & 100.00000 \\
+\textbf{Mean}      & \textbf{16.3424} \\
+Standard Deviation (std) & 1.8695676\\
+Minimum (min)  & 12.2 \\
+25th Percentile (25\%) & 15.03 \\
+Median (50\%)  & 16.5 \\
+75th Percentile (75\%) & 17.69 \\
+Maximum (max)  & 21.96 \\
+\bottomrule
+\end{tabular}
+\label{table:algorithm_stats}
+\end{table}
+
+
+
+\begin{figure}[!ht]
+    \centering
+    \includesvg[width=0.5\textwidth]{figures/experiment_n100_seconds.svg}
+    \caption{Histogram of experiment in seconds}
+    \label{fig:hist_results}
+\end{figure}
+
+Using the KNN Greedy algorithm yields mean of 16.3424 seconds for traversal of moving players in the case of 22 players on a 100 by 100 meters region. There are some outliers, but they have relatively low deviation from the sample mean, minimum (fastest time) is considered 12.2 seconds, and maximum is considered 21.96 seconds. Standard deviation is almost 2 second, that equates to approximately 15\% of mean, which shows robustness of the algorithm. KDE plot is similar to the bell curve of normal distribution, however left tail is much heavier, that can be interpreted as that there are a lot of surprisingly faster experiments and not quite a lot of surprisingly slow experiments (in terms of time taken to traverse all agents). One could also add that at value of 19 seconds it seems like there is some barrier that makes it hard for the simulation to take longer than this time, although it is just a hypothesis and may be due to simulation specifics.
+
+\begin{figure}[!ht]
+    \centering
+    \includesvg[width=1.0\textwidth]{figures/yaw-pitch.svg}
+    \caption{Yaw-Pitch Dynamics during the first simulation}
+    \label{fig:yaw-pitch}
+\end{figure}
+
+Yaw pitch dynamic graph \ref{fig:yaw-pitch} represents how angle may differ through a simulation. What is worth of noting, is how pitch (tilt) changes only between 6 and 18 degrees, while yaw (panning) is spanning between 160 to 220 degrees. It gives us a hint, of how sensitive the camera FOV to the tilt compared to panning. Those 2 graphs completely describe the dynamics of a camera movement in a single simulation. Times when camera stops at a single point are almost non-visible, as it happens only for a fraction of 5 frames. There also seen the fast spikes on pitch graph, it is for now unknown what is the reasoning of such behavior, but one is certain, it may not be caused by knn-greedy algorithm.
+
+\section{Conclusion}
+In this \href{https://github.com/mikecarti/hse-cam2023}{\color{blue}study}, we endeavored to develop and assess a camera traversal algorithm tailored to the task of tracking moving players in a simulated soccer match setting. Through a systematic investigation encompassing algorithmic design, simulation, and empirical evaluation, we aimed to address the multifaceted challenges inherent in efficient field traversal and player tracking.
+
+The foundational phase of our inquiry involved establishing rigorous coordinate systems to facilitate seamless integration between the soccer field and camera perspectives. By elucidating the transformation matrix and elucidating the interrelation between coordinate planes, we ensured a robust foundation upon which subsequent algorithmic developments could be built.
+
+Subsequently, we delved into the intricacies of camera simulation, including the precise determination of line-plane intersections, field of view calculations, and dynamic adjustments of yaw and pitch angles during traversal. These components were pivotal in emulating realistic camera behaviors, thereby enabling the faithful reproduction of real-world scenarios within our computational framework.
+
+The crux of our investigation lay in the algorithmic development phase, where we explored two distinct methodologies: the master-route baseline and the KNN-Greedy algorithm. The former provided a structured approach to field traversal, while the latter introduced a dynamic heuristic based on nearest-neighbor principles. Through meticulous experimentation and evaluation, we discerned significant insights into the performance and efficacy of each approach.
+
+Our empirical findings revealed that the KNN-Greedy algorithm exhibited commendable efficiency, with an average traversal time of approximately 16.34 seconds and a standard deviation of 1.87 seconds across 100 simulation iterations. These results underscore the algorithm's robustness and efficacy in dynamically tracking moving players while navigating the soccer field.
+
+Furthermore, our analysis extended beyond quantitative performance metrics to encompass qualitative aspects such as yaw-pitch dynamics. By visualizing the camera's orientation throughout the simulation, we gained valuable insights into its adaptability and responsiveness to evolving game scenarios, thereby elucidating avenues for further refinement and optimization.
+
+In summation, this study represents a rigorous exploration of camera traversal algorithms in the context of tracking moving players in simulated soccer matches. By leveraging mathematical principles, computational techniques, and empirical evaluation, we have developed a sophisticated framework that bridges theoretical concepts with practical applications. Moving forward, continued research and refinement of these algorithms hold the promise of advancing the efficiency, accuracy, and versatility of camera systems in diverse sporting and surveillance domains.
