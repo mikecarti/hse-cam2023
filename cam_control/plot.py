@@ -1,13 +1,12 @@
 from typing import Tuple, Dict
-
-from matplotlib.patches import Circle
-
-from strategy.utils import calc_corners
-from cam_simulation.diplomagm.main_without_app import FOVCalculator
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.patches import Circle
+from cam_simulation.diplomagm.main_without_app import FOVCalculator
+from strategy.utils import calc_corners
 
 FULLSCREEN = False
+
 
 class Plotter:
 
@@ -47,6 +46,8 @@ class Plotter:
         self.ax.plot([], [], color='green', label="Field Corner")
 
         self.legend = self.ax.legend(loc='upper right')
+        self.time_frame = 1
+        self.fps = 25
 
     def plot(self, fov_points: np.ndarray, observed_objects_positions: np.ndarray, visited_objects: np.array,
              camera_properties: Dict, cur_pos: Tuple[float, float], target_pos: Tuple[float, float]) -> None:
@@ -62,17 +63,17 @@ class Plotter:
         """
         # yaw, pitch = camera_properties["yaw"], camera_properties["pitch"]
 
-        # TODO: refactor ax
         self._clear_irrelevant()
         self.plot_fov(fov_points)
         self.plot_agents(observed_objects_positions, visited_objects)  # agents
         self.plot_aim(cur_pos, target_pos)
-        # self.plot_legend(yaw, pitch)
         plt.xlabel('X')
         plt.ylabel('Y')
         plt.axis('scaled')
+        plt.title(f"Time Frame: {self.time_frame}, seconds elapsed: {self.time_frame // self.fps}")
         self.ax.set_xlim([-40, 150])
         self.ax.set_ylim([-20, 150])
+        self.time_frame += 1
         plt.pause(self.pause_time)
 
     def plot_fov(self, points, color="r"):
