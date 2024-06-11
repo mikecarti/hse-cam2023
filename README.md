@@ -43,15 +43,10 @@ Statistics for time in ticks (frames), given that 1 second equate to 25 ticks.
 - 75%      442.25000
 - max      549.00000
 
-## Current bugs: 
-#### cam_control
-- Cam pitch shaking (players are not tracked immediately)
 
 ## TODO:
 - No camera physics (enertion, angle speed)
 - No prediction of players
-- Players are moving randomly
 - Players can block view
-- Measure metrics
 - Make camera adapt to ones player position on the fly
 - Detect when player's face is facing the right direction
